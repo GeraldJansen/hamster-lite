@@ -1,14 +1,13 @@
-# bash completion for hamster
-# TODO - merge hamster-cli into hamster-time-tracker and then both into "hamster"
+# bash completion for hamsterlite
 
-_hamster_helper()
+_hamsterlite_helper()
 {
     local IFS=$'\n'
     COMPREPLY+=( $(
         hamster "$@" 2>/dev/null ) )
 }
 
-_hamster()
+_hamsterlite()
 {
     local cur prev opts base
     COMPREPLY=()
@@ -27,7 +26,7 @@ _hamster()
     case "${prev}" in
 
     start|export)
-        _hamster_helper "assist" "$prev" "$cur"
+        _hamsterlite_helper "assist" "$prev" "$cur"
         return 0
         ;;
 
@@ -36,4 +35,4 @@ _hamster()
    COMPREPLY=($(compgen -W "${opts}" -- ${cur}))
    return 0
 }
-complete -F _hamster hamster
+complete -F _hamsterlite hamsterlite
