@@ -2,20 +2,20 @@
 # through the recurse("data") command
 
 start_dir = bld.path.find_dir('.')
-bld.install_files('${DATADIR}/hamster-time-tracker', start_dir.ant_glob('*.ui'))
-bld.install_files('${DATADIR}/hamster-time-tracker', 'hamster.db')
-bld.install_files('${DATADIR}/hamster-time-tracker/art', start_dir.ant_glob('art/*.png'))
-bld.install_files('${DATADIR}/hamster-time-tracker', 'report_template.html')
+bld.install_files('${DATADIR}/hamsterlite', start_dir.ant_glob('*.ui'))
+bld.install_files('${DATADIR}/hamsterlite', 'hamster.db')
+bld.install_files('${DATADIR}/hamsterlite/art', start_dir.ant_glob('art/*.png'))
+bld.install_files('${DATADIR}/hamsterlite', 'report_template.html')
 
-bld.install_files('${DATADIR}/icons/hicolor/16x16/apps',   'art/16x16/hamster-time-tracker.png')
-bld.install_files('${DATADIR}/icons/hicolor/22x22/apps',   'art/22x22/hamster-time-tracker.png')
-bld.install_files('${DATADIR}/icons/hicolor/32x32/apps',   'art/32x32/hamster-time-tracker.png')
-bld.install_files('${DATADIR}/icons/hicolor/48x48/apps',   'art/scalable/hamster-time-tracker.png')
-bld.install_files('${DATADIR}/icons/hicolor/scalable/apps','art/scalable/hamster-time-tracker.svg')
+bld.install_files('${DATADIR}/icons/hicolor/16x16/apps',   'art/16x16/hamsterlite.png')
+bld.install_files('${DATADIR}/icons/hicolor/22x22/apps',   'art/22x22/hamsterlite.png')
+bld.install_files('${DATADIR}/icons/hicolor/32x32/apps',   'art/32x32/hamsterlite.png')
+bld.install_files('${DATADIR}/icons/hicolor/48x48/apps',   'art/scalable/hamsterlite.png')
+bld.install_files('${DATADIR}/icons/hicolor/scalable/apps','art/scalable/hamsterlite.svg')
 
-bld.install_files('${DATADIR}/appdata', 'hamster-time-tracker.metainfo.xml')
+bld.install_files('${DATADIR}/appdata', 'hamsterlite.metainfo.xml')
 
-for filename in ["hamster-time-tracker.desktop"]:
+for filename in ["hamsterlite.desktop"]:
     bld(features = "subst",
         source= "%s.in.in" % filename,
         target= "%s.in" % filename,
@@ -26,7 +26,7 @@ for filename in ["hamster-time-tracker.desktop"]:
 bld.add_group()
 
 bld(features = 'intltool_in',
-    source   = 'hamster-time-tracker.desktop.in',
+    source   = 'hamsterlite.desktop.in',
     install_path = '${DATADIR}/applications',
     podir    = '../po',
     flags    = ['-d', '-q', '-u'])
