@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 # encoding: utf-8
 # Thomas Nagy, 2006-2009 (ita)
+# Gerald Jansen, 2019
 
 def build(bld):
-    bld(features = 'intltool_po', appname = 'hamster-time-tracker')
+    bld(features = 'intltool_po', appname = 'hamsterlite')
