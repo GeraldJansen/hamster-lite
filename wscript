@@ -1,6 +1,6 @@
 # -*- python -*-
-VERSION = '2.0'
-APPNAME = 'hamster-time-tracker'
+VERSION = '0.1'
+APPNAME = 'hamsterlite'
 top = '.'
 out = 'build'
 
@@ -20,8 +20,8 @@ def configure(conf):
     conf.env.HAVE_BIND_TEXTDOMAIN_CODESET = 1
 
     conf.env.VERSION = VERSION
-    conf.env.GETTEXT_PACKAGE = "hamster-time-tracker"
-    conf.env.PACKAGE = "hamster-time-tracker"
+    conf.env.GETTEXT_PACKAGE = "hamsterlite"
+    conf.env.PACKAGE = "hamsterlite"
 
     conf.recurse("help")
 
@@ -38,18 +38,10 @@ def options(opt):
 
 
 def build(bld):
-    bld.install_files('${LIBDIR}/hamster-time-tracker',
-                      """src/hamster-service
-                         src/hamster-windows-service
-                      """,
-                      chmod=Utils.O755)
-
-    bld.install_as('${BINDIR}/hamster', "src/hamster-cli", chmod=Utils.O755)
-
+    bld.install_as('${BINDIR}/hamsterlite', "src/hamsterlite", chmod=Utils.O755)
 
     bld.install_files('${PREFIX}/share/bash-completion/completion',
-                      'src/hamster.bash')
-
+                      'src/hamsterlite.bash')
 
     bld(features='py',
         source=bld.path.ant_glob('src/**/*.py'),
@@ -59,19 +51,7 @@ def build(bld):
     bld(features="subst",
         source="src/hamster/defs.py.in",
         target="src/hamster/defs.py",
-        install_path="${PYTHONDIR}/hamster"
-        )
-
-    bld(features="subst",
-        source= "org.gnome.hamster.service.in",
-        target= "org.gnome.hamster.service",
-        install_path="${DATADIR}/dbus-1/services",
-        )
-
-    bld(features="subst",
-        source= "org.gnome.hamster.Windows.service.in",
-        target= "org.gnome.hamster.Windows.service",
-        install_path="${DATADIR}/dbus-1/services",
+        install_path="${PYTHONDIR}/hamsterlite"
         )
 
     bld.recurse("po data help")
