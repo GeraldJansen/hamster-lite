@@ -63,22 +63,17 @@ class TagsEntry(gtk.Entry):
 
         self._parent_click_watcher = None # bit lame but works
 
-        self.external_listeners = [
-            (runtime.storage, runtime.storage.connect('tags-changed', self.refresh_ac_tags))
-        ]
         self.show()
         self.populate_suggestions()
         self.connect("destroy", self.on_destroy)
 
     def on_destroy(self, window):
-        for obj, handler in self.external_listeners:
-            obj.disconnect(handler)
         self.popup.destroy()
         self.popup = None
 
 
-    def refresh_ac_tags(self, event):
-        self.ac_tags = None
+    #def refresh_ac_tags(self, event):
+    #    self.ac_tags = None
 
     def get_tags(self):
         # splits the string by comma and filters out blanks

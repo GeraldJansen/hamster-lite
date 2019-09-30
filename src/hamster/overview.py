@@ -24,7 +24,7 @@ import itertools
 import webbrowser
 
 from collections import defaultdict
-from math import ceil
+from math import ceil, floor
 
 from gi.repository import Gtk as gtk
 from gi.repository import Gdk as gdk
@@ -36,8 +36,8 @@ from gi.repository import PangoCairo as pangocairo
 from gi.repository import Pango as pango
 import cairo
 
-from hamster.lib import graphics, layout, stuff
 from hamster import widgets, reports
+from hamster.lib import graphics, layout, stuff
 from hamster.lib.runtime import dialogs, Controller
 from hamster.lib.pytweener import Easing
 from hamster.widgets.dates import RangePick
@@ -310,11 +310,14 @@ class Totals(graphics.Scene):
     def set_facts(self, facts):
         totals = defaultdict(lambda: defaultdict(dt.timedelta))
         for fact in facts:
+            end_time = fact['end_time'] or stuff.hamster_now()
+            delta = end_time - fact['start_time']
             for key in ('category', 'activity'):
-                totals[key][getattr(fact, key)] += fact.delta
+                totals[key][fact[key]] += delta
+                #totals[key][getattr(fact, key)] += delta
 
-            for tag in fact.tags:
-                totals["tag"][tag] += fact.delta
+            for tag in fact['tags']:
+                totals["tag"][tag] += delta
 
 
         for key, group in totals.items():

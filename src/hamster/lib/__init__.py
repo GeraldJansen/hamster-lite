@@ -74,7 +74,7 @@ def figure_time(str_time):
 
 class Fact(object):
     def __init__(self, activity="", category=None, description=None, tags=None,
-                 start_time=None, end_time=None, id=None, activity_id=None):
+                 start_time=None, end_time=None, id=None, activity_id=None, **kwargs):
         """Homogeneous chunk of activity.
 
         The category, description and tags must be passed explicitly.

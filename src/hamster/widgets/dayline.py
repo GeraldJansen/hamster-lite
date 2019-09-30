@@ -24,7 +24,7 @@ from gi.repository import Gtk as gtk
 from gi.repository import GObject as gobject
 from gi.repository import PangoCairo as pangocairo
 
-from hamster.lib import stuff, graphics, pytweener
+from hamster.lib import Fact, stuff, graphics, pytweener
 from hamster.lib.configuration import conf
 
 
@@ -124,6 +124,7 @@ class DayLine(graphics.Scene):
 
         self.fact_bars = []
         for fact in facts:
+            fact = Fact(**fact)
             fact_bar = graphics.Rectangle(0, 0, fill="#aaa", stroke="#aaa") # dimensions will depend on screen situation
             fact_bar.fact = fact
 

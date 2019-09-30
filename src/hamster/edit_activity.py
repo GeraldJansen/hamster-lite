@@ -126,7 +126,7 @@ class CustomFactController(gobject.GObject):
         self.increment_date(+1)
 
     def draw_preview(self, start_time, end_time=None):
-        day_facts = self.storage.get_facts(self.date)
+        day_facts = runtime.storage.get_facts(self.date)
         self.dayline.plot(self.date, day_facts, start_time, end_time)
 
     def get_widget(self, name):
@@ -153,9 +153,9 @@ class CustomFactController(gobject.GObject):
     def on_save_button_clicked(self, button):
         fact = self.validate_fields()
         if self.fact_id:
-            self.storage.update_fact(self.fact_id, fact)
+            runtime.storage.update_fact(self.fact_id, fact)
         else:
-            self.storage.add_fact(fact)
+            runtime.storage.add_fact(fact)
         self.close_window()
 
     def on_activity_changed(self, widget):
@@ -345,7 +345,7 @@ class CustomFactController(gobject.GObject):
         return fact
 
     def on_delete_clicked(self, button):
-        self.storage.remove_fact(self.fact_id)
+        runtime.storage.remove_fact(self.fact_id)
         self.close_window()
 
     def on_cancel_clicked(self, button):

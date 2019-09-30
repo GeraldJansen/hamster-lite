@@ -291,15 +291,13 @@ class ActivityEntry(gtk.Entry):
         # score is as simple as you get 30-days_ago points for each occurence
         suggestions = defaultdict(int)
         for fact in last_month:
-            days = 30 - (now - dt.datetime.combine(fact.date, dt.time())).total_seconds() / 60 / 60 / 24
-            label = fact.activity
-            if fact.category:
-                label += "@%s" % fact.category
-
+            days = 30 - (now - fact["start_time"]).days
+            label = fact["activity"]
+            if fact["category"]:
+                label += "@%s" % fact["category"]
             suggestions[label] += days
-
-            if fact.tags:
-                label += " #%s" % (" #".join(fact.tags))
+            if fact["tags"]:
+                label += " #%s" % (" #".join(fact["tags"]))
                 suggestions[label] += days
 
         for rec in self.storage.get_activities():

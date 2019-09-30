@@ -73,11 +73,11 @@ class Storage(object):
         return result
 
 
-    def stop_tracking(self, end_time):
+    def stop_tracking(self, end_time=None):
         """Stops tracking the current activity"""
         facts = self.__get_todays_facts()
         if facts and not facts[-1]['end_time']:
-            self.__touch_fact(facts[-1], end_time)
+            self.__touch_fact(facts[-1], end_time or hamster_now())
             self.facts_changed()
 
 
@@ -89,16 +89,6 @@ class Storage(object):
             self.__remove_fact(fact_id)
             self.facts_changed()
         self.end_transaction()
-
-
-    def get_facts(self, start_date, end_date, search_terms):
-        return self.__get_facts(start_date, end_date, search_terms)
-
-
-    def get_todays_facts(self):
-        """Gets facts of today, respecting hamster midnight. See GetFacts for
-        return info"""
-        return self.__get_todays_facts()
 
 
     # categories

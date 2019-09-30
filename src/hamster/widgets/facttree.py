@@ -28,8 +28,7 @@ from gi.repository import Gdk as gdk
 from gi.repository import PangoCairo as pangocairo
 from gi.repository import Pango as pango
 
-from hamster.lib import graphics
-from hamster.lib import stuff
+from hamster.lib import Fact, graphics, stuff
 
 
 class ActionRow(graphics.Sprite):
@@ -465,7 +464,7 @@ class FactTree(graphics.Scene, gtk.Scrollable):
     def set_facts(self, facts):
         # FactTree adds attributes to its facts. isolate these side effects
         # copy the id too; most of the checks are based on id here.
-        self.facts = [fact.copy(id=fact.id) for fact in facts]
+        self.facts = [Fact(**f) for f in facts]
         del facts  # make sure facts is not used by inadvertance below.
 
         self.y = 0

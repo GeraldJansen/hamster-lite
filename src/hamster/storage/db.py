@@ -140,7 +140,7 @@ class Storage(storage.Storage):
         tags = [tag.strip() for tag in tags.split(",") if tag.strip()]  # split by comma
 
         #first we will create new ones
-        tags, changes = self.__get_tag_ids(tags)
+        tags, changes = self._get_tag_ids(tags)
         tags = [tag["id"] for tag in tags]
 
         #now we will find which ones are gone from the list
@@ -313,7 +313,7 @@ class Storage(storage.Storage):
                           a.start_time AS start_time,
                           a.end_time AS end_time,
                           a.description as description,
-                          b.name AS name, b.id as activity_id,
+                          b.name AS activity, b.id as activity_id,
                           coalesce(c.name, ?) as category, coalesce(c.id, -1) as category_id,
                           e.name as tag
                      FROM facts a
@@ -344,7 +344,7 @@ class Storage(storage.Storage):
 
             # we need dict so we can modify it (sqlite.Row is read only)
             # in python 2.5, sqlite does not have keys() yet, so we hardcode them (yay!)
-            keys = ["id", "start_time", "end_time", "description", "name",
+            keys = ["id", "start_time", "end_time", "description", "activity",
                     "activity_id", "category", "tag"]
             grouped_fact = dict([(key, grouped_fact[key]) for key in keys])
 
@@ -445,10 +445,9 @@ class Storage(storage.Storage):
                 fact_name = fact["name"]
 
                 # create new fact for the end
-                new_fact = Fact(activity=fact["name"],
-                                category = fact["category"],
-                                description = fact["description"])
-                new_fact_id = self.__add_fact(new_fact.serialized_name(), end_time, fact_end_time)
+                new_fact = Fact(**fact)
+                new_fact.end_time = fact_end_time
+                new_fact_id = self.add_fact(new_fact)
 
                 # copy tags
                 tag_update = """INSERT INTO fact_tags(fact_id, tag_id)
@@ -470,22 +469,17 @@ class Storage(storage.Storage):
                              (start_time, fact["id"]))
 
 
-    def __add_fact(self, serialized_fact, start_time, end_time = None, temporary = False):
-        fact = Fact.parse(serialized_fact)
-        fact.start_time = start_time
-        fact.end_time = end_time
+    def add_fact(self, fact, temporary=False):
 
         logger.info("adding fact {}".format(fact))
 
-        start_time = start_time or fact.start_time
-        end_time = end_time or fact.end_time
-
-        if not fact.activity or start_time is None:  # sanity check
+        if not fact.activity or fact.start_time is None:  # sanity check
             return 0
 
 
         # get tags from database - this will create any missing tags too
-        tags = [(tag['id'], tag['name'], tag['autocomplete']) for tag in self.get_tag_ids(fact.tags)]
+        print(self._get_tag_ids(fact.tags))
+        tags = [(tag['id'], tag['name'], tag['autocomplete']) for tag in self._get_tag_ids(fact.tags)[0]]
 
         # now check if maybe there is also a category
         category_id = None
@@ -505,9 +499,10 @@ class Storage(storage.Storage):
             activity_id = activity_id['id']
 
         # if we are working on +/- current day - check the last_activity
+        start_time = fact.start_time
         if (dt.timedelta(days=-1) <= hamster_now() - start_time <= dt.timedelta(days=1)):
             # pull in previous facts
-            facts = self.__get_todays_facts()
+            facts = self.get_todays_facts()
 
             previous = None
             if facts and facts[-1]["end_time"] == None:
@@ -553,6 +548,7 @@ class Storage(storage.Storage):
 
 
         # done with the current activity, now we can solve overlaps
+        end_time = fact.end_time
         if not end_time:
             end_time = self.__squeeze_in(start_time)
         else:
@@ -581,10 +577,13 @@ class Storage(storage.Storage):
         return self.fetchone("SELECT last_insert_rowid();")[0]
 
 
-    def __get_todays_facts(self):
-        return self.__get_facts(hamster_today())
+    def get_todays_facts(self):
+        """Gets facts of today, respecting hamster midnight. See GetFacts for
+        return info"""
+        return self.get_facts(hamster_today())
 
-    def __get_facts(self, date, end_date = None, search_terms = ""):
+
+    def get_facts(self, date, end_date = None, search_terms = ""):
         split_time = conf.day_start
         datetime_from = dt.datetime.combine(date, split_time)
 
@@ -598,7 +597,7 @@ class Storage(storage.Storage):
                           a.start_time AS start_time,
                           a.end_time AS end_time,
                           a.description as description,
-                          b.name AS name, b.id as activity_id,
+                          b.name AS activity, b.id as activity_id,
                           coalesce(c.name, ?) as category,
                           e.name as tag
                      FROM facts a
@@ -835,7 +834,7 @@ class Storage(storage.Storage):
         con = self.connection
         cur = con.cursor()
 
-        logger.debug("%s %s" % (query, params))
+        # logger.debug("%s %s" % (query, params))
 
         if params:
             cur.execute(query, params)
@@ -873,7 +872,6 @@ class Storage(storage.Storage):
         if not self.__con:
             con.commit()
             cur.close()
-            self.register_modification()
 
     def executemany(self, statement, params = []):
         con = self.__con or self.connection
@@ -885,7 +883,6 @@ class Storage(storage.Storage):
         if not self.__con:
             con.commit()
             cur.close()
-            self.register_modification()
 
 
 
