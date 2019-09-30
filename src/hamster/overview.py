@@ -36,21 +36,13 @@ from gi.repository import PangoCairo as pangocairo
 from gi.repository import Pango as pango
 import cairo
 
-import hamster.client
-from hamster.lib import graphics
-from hamster.lib import layout
-from hamster import reports
-from hamster.lib import stuff
-from hamster import widgets
-
-from hamster.lib.configuration import dialogs
-from hamster.lib.configuration import Controller
-
-
+from hamster.lib import graphics, layout, stuff
+from hamster import widgets, reports
+from hamster.lib.runtime import dialogs, Controller
 from hamster.lib.pytweener import Easing
-
 from hamster.widgets.dates import RangePick
 from hamster.widgets.facttree import FactTree
+from hamster.storage import db
 
 
 class HeaderBar(gtk.HeaderBar):
@@ -416,9 +408,9 @@ class Overview(Controller):
         self.window.set_default_icon_name("hamster-time-tracker")
         self.window.set_default_size(700, 500)
 
-        self.storage = hamster.client.Storage()
-        self.storage.connect("facts-changed", self.on_facts_changed)
-        self.storage.connect("activities-changed", self.on_facts_changed)
+        self.storage = db.Storage()
+        #DEL self.storage.connect("facts-changed", self.on_facts_changed)
+        #DEL self.storage.connect("activities-changed", self.on_facts_changed)
 
         self.header_bar = HeaderBar()
         self.window.set_titlebar(self.header_bar)

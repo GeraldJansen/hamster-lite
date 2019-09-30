@@ -25,7 +25,7 @@ import cairo
 from math import pi
 
 from hamster.lib import graphics, stuff
-from hamster.lib.configuration import runtime
+from hamster.lib.runtime import runtime
 
 class TagsEntry(gtk.Entry):
     __gsignals__ = {

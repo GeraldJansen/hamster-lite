@@ -24,9 +24,8 @@ import datetime as dt
 import calendar
 import re
 
-
 from hamster.lib import stuff
-from hamster.lib.configuration import load_ui_file
+from hamster.lib.runtime import load_ui_file
 
 
 class Calendar():

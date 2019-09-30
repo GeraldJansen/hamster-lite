@@ -156,18 +156,3 @@ class Storage(object):
             return dict(self.__get_activity_by_name(activity, category_id, resurrect) or {})
         else:
             return {}
-
-    # tags
-    def get_tags(self, only_autocomplete):
-        return self.__get_tags(only_autocomplete)
-
-    def get_tag_ids(self, tags):
-        tags, new_added = self.__get_tag_ids(tags)
-        if new_added:
-            self.tags_changed()
-        return tags
-
-    def update_autocomplete_tags(self, tags):
-        changes = self.__update_autocomplete_tags(tags)
-        if changes:
-            self.tags_changed()

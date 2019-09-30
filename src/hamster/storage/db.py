@@ -30,12 +30,6 @@ import itertools
 import sqlite3 as sqlite
 from shutil import copy as copyfile
 import datetime as dt
-try:
-    from gi.repository import Gio as gio
-except ImportError:
-    print("Could not import gio - requires pygobject. File monitoring will be disabled")
-    gio = None
-
 from hamster.storage import storage
 from hamster.lib import Fact
 from hamster.lib.configuration import conf
@@ -47,7 +41,7 @@ class Storage(storage.Storage):
     def __init__(self, unsorted_localized="Unsorted", database_dir=None):
         """
         XXX - you have to pass in name for the uncategorized category
-        Delayed setup so we don't do everything at the same time
+        Delayed setup so we don't do everything at the same time (?)
         """
         storage.Storage.__init__(self)
 
@@ -55,34 +49,9 @@ class Storage(storage.Storage):
 
         self.__con = None
         self.__cur = None
-        self.__last_etag = None
-
 
         self.db_path = self.__init_db_file(database_dir)
         logger.info("database: '{}'".format(self.db_path))
-
-        if gio:
-            # add file monitoring so the app does not have to be restarted
-            # when db file is rewritten
-            def on_db_file_change(monitor, gio_file, event_uri, event):
-                logger.debug(event)
-                if event == gio.FileMonitorEvent.CHANGES_DONE_HINT:
-                    if gio_file.query_info(gio.FILE_ATTRIBUTE_ETAG_VALUE,
-                                           gio.FileQueryInfoFlags.NONE,
-                                           None).get_etag() == self.__last_etag:
-                        # ours
-                        logger.info("database updated")
-                        return
-                elif event == gio.FileMonitorEvent.DELETED:
-                    self.con = None
-
-                if event == gio.FileMonitorEvent.CHANGES_DONE_HINT:
-                    logger.warning("DB file has been modified externally. Calling all stations")
-                    self.dispatch_overwrite()
-
-            self.__database_file = gio.File.new_for_path(self.db_path)
-            self.__db_monitor = self.__database_file.monitor_file(gio.FileMonitorFlags.WATCH_MOUNTS, None)
-            self.__db_monitor.connect("changed", on_db_file_change)
 
         self.run_fixtures()
 
@@ -132,27 +101,19 @@ class Storage(storage.Storage):
 
         return db_path
 
-
-    def register_modification(self):
-        if gio:
-            # db.execute calls this so we know that we were the ones
-            # that modified the DB and no extra refesh is not needed
-            self.__last_etag = self.__database_file.query_info(gio.FILE_ATTRIBUTE_ETAG_VALUE,
-                                                               gio.FileQueryInfoFlags.NONE,
-                                                               None).get_etag()
-
     #tags, here we come!
-    def __get_tags(self, only_autocomplete = False):
+    def get_tags(self, only_autocomplete = False):
         if only_autocomplete:
             return self.fetchall("select * from tags where autocomplete != 'false' order by name")
         else:
             return self.fetchall("select * from tags order by name")
 
-    def __get_tag_ids(self, tags):
+    def _get_tag_ids(self, tags):
         """look up tags by their name. create if not found"""
 
+        # bit of magic here - using sqlites bind variables
         db_tags = self.fetchall("select * from tags where name in (%s)"
-                                            % ",".join(["?"] * len(tags)), tags) # bit of magic here - using sqlites bind variables
+                                % ",".join(["?"] * len(tags)), tags)
 
         changes = False
 
@@ -171,7 +132,7 @@ class Storage(storage.Storage):
 
             self.execute([statement] * len(add), [(tag,) for tag in add])
 
-            return self.__get_tag_ids(tags)[0], True # all done, recurse
+            return self._get_tag_ids(tags)[0], True # all done, recurse
         else:
             return db_tags, changes
 
@@ -937,7 +898,6 @@ class Storage(storage.Storage):
         self.__con.commit()
         self.__cur.close()
         self.__con, self.__cur = None, None
-        self.register_modification()
 
     def run_fixtures(self):
         self.start_transaction()

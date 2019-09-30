@@ -27,23 +27,16 @@ import copy
 import itertools
 import re
 import codecs
+import json
 from string import Template
 from textwrap import dedent
+from calendar import timegm
+from io import StringIO, IOBase
 
-from hamster.lib.configuration import runtime
+from hamster.lib.runtime import runtime
 from hamster.lib import stuff
 from hamster.lib.i18n import C_
-try:
-    import json
-except ImportError:
-    # fallback for python < 2.6
-    json_dumps = lambda s: s
-else:
-    json_dumps = json.dumps
 
-from calendar import timegm
-
-from io import StringIO, IOBase
 
 def simple(facts, start_date, end_date, format, path = None):
     facts = copy.deepcopy(facts) # dont want to do anything bad to the input
@@ -310,8 +303,8 @@ class HTMLWriter(ReportWriter):
 
             start_date = timegm(self.start_date.timetuple()),
             end_date = timegm(self.end_date.timetuple()),
-            facts = json_dumps([fact.as_dict() for fact in facts]),
-            date_facts = json_dumps(date_facts),
+            facts = json.dumps([fact.as_dict() for fact in facts]),
+            date_facts = json.dumps(date_facts),
 
             all_activities_rows = "\n".join(self.fact_rows)
         )

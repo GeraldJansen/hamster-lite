@@ -24,11 +24,9 @@ from textwrap import dedent
 import time
 import datetime as dt
 
-""" TODO: hook into notifications and refresh our days if some evil neighbour
-          edit fact window has dared to edit facts
-"""
 from hamster import widgets
-from hamster.lib.configuration import runtime, conf, load_ui_file
+from hamster.lib.configuration import conf
+from hamster.lib.runtime import runtime, load_ui_file
 from hamster.lib.stuff import hamster_today, hamster_now, escape_pango
 from hamster.lib import Fact
 
@@ -79,9 +77,10 @@ class CustomFactController(gobject.GObject):
         self.save_button = self.get_widget("save_button")
 
         self.cmdline.grab_focus()
+        self.storage = runtime.storage
         if fact_id:
             # editing
-            self.fact = runtime.storage.get_fact(fact_id)
+            self.fact = self.storage.get_fact(fact_id)
             self.date = self.fact.date
             self.window.set_title(_("Update activity"))
         else:
@@ -127,7 +126,7 @@ class CustomFactController(gobject.GObject):
         self.increment_date(+1)
 
     def draw_preview(self, start_time, end_time=None):
-        day_facts = runtime.storage.get_facts(self.date)
+        day_facts = self.storage.get_facts(self.date)
         self.dayline.plot(self.date, day_facts, start_time, end_time)
 
     def get_widget(self, name):
@@ -154,9 +153,9 @@ class CustomFactController(gobject.GObject):
     def on_save_button_clicked(self, button):
         fact = self.validate_fields()
         if self.fact_id:
-            runtime.storage.update_fact(self.fact_id, fact)
+            self.storage.update_fact(self.fact_id, fact)
         else:
-            runtime.storage.add_fact(fact)
+            self.storage.add_fact(fact)
         self.close_window()
 
     def on_activity_changed(self, widget):
@@ -346,7 +345,7 @@ class CustomFactController(gobject.GObject):
         return fact
 
     def on_delete_clicked(self, button):
-        runtime.storage.remove_fact(self.fact_id)
+        self.storage.remove_fact(self.fact_id)
         self.close_window()
 
     def on_cancel_clicked(self, button):

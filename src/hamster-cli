@@ -27,10 +27,10 @@ import argparse
 import re
 import datetime as dt
 
-from hamster import client, reports
+from hamster import reports
 from hamster import logger as hamster_logger
 from hamster.lib import default_logger, Fact, stuff
-
+from hamster.storage import db
 
 logger = default_logger(__file__)
 
@@ -130,28 +130,15 @@ def parse_datetime_range(arg):
 class HamsterClient(object):
     '''The main application.'''
     def __init__(self):
-        self.storage = client.Storage()
+        self.storage = db.Storage()
 
 
     def _launch_window(self, window_name):
-        try:
-            from hamster import defs
-            running_installed = True
-        except:
-            running_installed = False
-
-        if running_installed:
-            import dbus
-            bus = dbus.SessionBus()
-            server = bus.get_object("org.gnome.Hamster.WindowServer",
-                                    "/org/gnome/Hamster/WindowServer")
-            getattr(server, window_name)()
-        else:
-            print("Running in devel mode")
-            from gi.repository import Gtk as gtk
-            from hamster.lib.configuration import dialogs
-            getattr(dialogs, window_name).show()
-            gtk.main()
+        print("Running in devel mode")
+        from gi.repository import Gtk as gtk
+        from hamster.lib.runtime import dialogs
+        getattr(dialogs, window_name).show()
+        gtk.main()
 
     def overview(self, *args):
         self._launch_window("overview")
@@ -373,7 +360,7 @@ Actions:
 
 Time formats:
     * 'YYYY-MM-DD hh:mm': If start-date is missing, it will default to today.
-      If end-date is missing, it will default to start-date. 
+      If end-date is missing, it will default to start-date.
     * '-minutes': Relative time in minutes from the current date and time.
 Note:
     * For list/search/export a "hamster day" starts at the time set in the

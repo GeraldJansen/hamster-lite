@@ -25,7 +25,10 @@ import datetime as dt
 
 from gettext import ngettext
 
-from hamster.lib.configuration import Controller
+from hamster.lib.configuration import conf
+from hamster.lib.runtime import runtime, Controller
+from hamster import widgets
+from hamster.lib import stuff
 
 
 def get_prev(selection, model):
@@ -73,12 +76,6 @@ class ActivityStore(gtk.ListStore):
 
 formats = ["fixed", "symbolic", "minutes"]
 appearances = ["text", "icon", "both"]
-
-from hamster.lib.configuration import runtime, conf
-from hamster import widgets
-from hamster.lib import stuff
-
-
 
 class PreferencesEditor(Controller):
     TARGETS = [
