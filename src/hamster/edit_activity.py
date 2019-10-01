@@ -80,11 +80,7 @@ class CustomFactController(gobject.GObject):
         self.storage = runtime.storage
         if fact_id:
             # editing
-<<<<<<< HEAD
-            self.fact = self.storage.get_fact(fact_id)
-=======
             self.fact = Fact(**runtime.storage.get_fact(fact_id))
->>>>>>> collapse storage/*.py into storage.py
             self.date = self.fact.date
             self.window.set_title(_("Update activity"))
         else:

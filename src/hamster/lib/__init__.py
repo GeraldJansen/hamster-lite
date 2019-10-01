@@ -73,7 +73,7 @@ def figure_time(str_time):
 
 
 class Fact(object):
-    def __init__(self, activity="", category=None, description=None, tags=None,
+    def __init__(self, activity="", category=None, description=None, tags=[],
                  start_time=None, end_time=None, id=None, activity_id=None, **kwargs):
         """Homogeneous chunk of activity.
 
@@ -90,7 +90,7 @@ class Fact(object):
         self.activity = activity
         self.category = category
         self.description = description
-        self.tags = tags or []
+        self.tags = tags
         self.start_time = start_time
         self.end_time = end_time
         self.id = id

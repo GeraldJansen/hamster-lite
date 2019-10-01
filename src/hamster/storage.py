@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)   # noqa: E402
 import os, time
 import datetime
 import itertools
-import sqlite3 as sqlite
+import sqlite3
 from shutil import copy as copyfile
 import datetime as dt
 from hamster.lib import Fact
@@ -37,12 +37,11 @@ from hamster.lib.stuff import hamster_today, hamster_now
 
 class Storage():
     con = None # Connection will be created on demand
-    def __init__(self, unsorted_localized="Unsorted", database_dir=None):
+    def __init__(self, unsorted="Unsorted", database_dir=None):
         """
-        XXX - you have to pass in name for the uncategorized category
         Delayed setup so we don't do everything at the same time (?)
         """
-        self._unsorted_localized = unsorted_localized
+        self._unsorted = unsorted # NB. pass in localized name
 
         self.__con = None
         self.__cur = None
@@ -118,7 +117,7 @@ class Storage():
     def stop_tracking(self, end_time=None):
         """Stops tracking the current activity"""
         facts = self.get_todays_facts()
-        if facts and not facts[-1]['end_time']:
+        if facts and not facts[-1].end_time:
             self._touch_fact(facts[-1], end_time or hamster_now())
 
 
@@ -200,7 +199,7 @@ class Storage():
         self.execute(query, (name, name.lower(), category_id, id))
 
         affected_ids = [res[0] for res in self.fetchall("select id from facts where activity_id = ?", (id,))]
-        self.__remove_index(affected_ids)
+        self._remove_index(affected_ids)
 
 
     def change_category(self, id, category_id):
@@ -236,7 +235,7 @@ class Storage():
         affected_ids = [res[0] for res in self.fetchall("select id from facts where activity_id = ?", (id,))]
         if existing_activity:
             affected_ids.extend([res[0] for res in self.fetchall("select id from facts where activity_id = ?", (existing_activity['id'],))])
-        self.__remove_index(affected_ids)
+        self._remove_index(affected_ids)
 
         return True
 
@@ -263,7 +262,7 @@ class Storage():
              WHERE activity_id in (SELECT id FROM activities where category_id=?)
         """
         affected_ids = [res[0] for res in self.fetchall(affected_query, (id,))]
-        self.__remove_index(affected_ids)
+        self._remove_index(affected_ids)
 
 
     def get_activity_by_name(self, activity, category_id = None, resurrect = True):
@@ -280,7 +279,7 @@ class Storage():
                         LIMIT 1
             """
 
-            res = self.fetchone(query, (self._unsorted_localized, activity, category_id))
+            res = self.fetchone(query, (self._unsorted, activity, category_id))
         elif activity:
             query = """
                        SELECT a.id, a.name, a.deleted, coalesce(b.name, ?) as category
@@ -290,7 +289,7 @@ class Storage():
                      ORDER BY a.deleted, a.id desc
                         LIMIT 1
             """
-            res = self.fetchone(query, (self._unsorted_localized, activity, ))
+            res = self.fetchone(query, (self._unsorted, activity, ))
         else:
             res = None
 
@@ -349,46 +348,40 @@ class Storage():
                  ORDER BY e.name
         """
 
-        facts = self.fetchall(query, (self._unsorted_localized, id))
-        assert len(facts) > 0, "No fact with id {}".format(id)
-        fact = self._group_tags(facts)[0]
-        logger.info("got fact {}".format(Fact(**fact)))
+        rows = self.fetchall(query, (self._unsorted, id))
+        assert len(rows) > 0, "No fact with id {}".format(id)
+        fact = self._create_facts(rows)[0]
+        logger.info("got fact {}".format(fact))
         return fact
 
-    def _group_tags(self, facts):
-        """put the fact back together and move all the unique tags to an array"""
-        if not facts: return facts  #be it None or whatever
+    def _create_facts(self, fact_dicts):
+        """Create Fact instances, moving all tags to an array"""
+        if not fact_dicts: return fact_dicts  #be it None or whatever
 
-        grouped_facts = []
-        for fact_id, fact_tags in itertools.groupby(facts, lambda f: f["id"]):
+        facts = []
+        for fact_id, fact_tags in itertools.groupby(fact_dicts, lambda f: f["id"]):
             fact_tags = list(fact_tags)
 
-            # first one is as good as the last one
-            grouped_fact = fact_tags[0]
+            # first one is as good as the last one: convert to Fact
+            grouped_fact = Fact(**fact_tags[0])
+            grouped_fact.tags = [ft["tag"] for ft in fact_tags if ft["tag"]]
 
-            # we need dict so we can modify it (sqlite.Row is read only)
-            # in python 2.5, sqlite does not have keys() yet, so we hardcode them (yay!)
-            keys = ["id", "start_time", "end_time", "description", "activity",
-                    "activity_id", "category", "tag"]
-            grouped_fact = dict([(key, grouped_fact[key]) for key in keys])
-
-            grouped_fact["tags"] = [ft["tag"] for ft in fact_tags if ft["tag"]]
-            grouped_facts.append(grouped_fact)
-        return grouped_facts
+            facts.append(grouped_fact)
+        return facts
 
 
     def _touch_fact(self, fact, end_time = None):
         end_time = end_time or hamster_now()
         # tasks under one minute do not count
-        if end_time - fact['start_time'] < datetime.timedelta(minutes = 1):
-            self._remove_fact(fact['id'])
+        if end_time - fact.start_time < datetime.timedelta(minutes = 1):
+            self._remove_fact(fact.id)
         else:
             query = """
                        UPDATE facts
                           SET end_time = ?
                         WHERE id = ?
             """
-            self.execute(query, (end_time, fact['id']))
+            self.execute(query, (end_time, fact.id))
 
     def _squeeze_in(self, start_time):
         """ tries to put task in the given date
@@ -408,19 +401,19 @@ class Storage():
                  ORDER BY start_time
                     LIMIT 1
                 """
-        fact = self.fetchone(query, (start_time, start_time,
-                                     start_time - dt.timedelta(hours = 12),
-                                     start_time, start_time,
-                                     start_time + dt.timedelta(hours = 12)))
+        row = self.fetchone(query, (start_time, start_time,
+                                    start_time - dt.timedelta(hours = 12),
+                                    start_time, start_time,
+                                    start_time + dt.timedelta(hours = 12)))
         end_time = None
-        if fact:
-            if start_time > fact["start_time"]:
+        if row:
+            if start_time > row['start_time']:
                 #we are in middle of a fact - truncate it to our start
                 self.execute("UPDATE facts SET end_time=? WHERE id=?",
-                             (start_time, fact["id"]))
+                             (start_time, row['id']))
 
             else: #otherwise we have found a task that is after us
-                end_time = fact["start_time"]
+                end_time = row['start_time']
 
         return end_time
 
@@ -437,7 +430,7 @@ class Storage():
         #      |--- old --- 1|   |2 --- old --- 1|   |2 --- old ---|
         # |3 -----------------------  big old   ------------------------ 3|
         query = """
-                   SELECT a.*, b.name, c.name as category
+                   SELECT a.*, b.name as activity, c.name as category
                      FROM facts a
                 LEFT JOIN activities b on b.id = a.activity_id
                 LEFT JOIN categories c on b.category_id = c.id
@@ -450,26 +443,26 @@ class Storage():
                                           start_time, end_time,
                                           start_time, end_time))
 
-        for fact in conflicts:
-            fact_end_time = fact["end_time"] or hamster_now()
+        for row in conflicts:
+            fact = Fact(**row)
+            fact_end_time = fact.end_time or hamster_now()
 
             # won't eliminate as it is better to have overlapping entries than loosing data
-            if start_time < fact["start_time"] and end_time > fact_end_time:
+            if start_time < fact.start_time and end_time > fact_end_time:
                 continue
 
             # split - truncate until beginning of new entry and create new activity for end
-            if fact["start_time"] < start_time < fact_end_time and \
-               fact["start_time"] < end_time < fact_end_time:
+            if fact.start_time < start_time < fact_end_time and \
+               fact.start_time < end_time < fact_end_time:
 
-                logger.info("splitting %s" % fact["name"])
+                logger.info("splitting %s" % fact)
                 # truncate until beginning of the new entry
                 self.execute("""UPDATE facts
                                    SET end_time = ?
-                                 WHERE id = ?""", (start_time, fact["id"]))
-                fact_name = fact["name"]
+                                 WHERE id = ?""", (start_time, fact.id))
 
                 # create new fact for the end
-                new_fact = Fact(**fact)
+                new_fact = fact.copy()
                 new_fact.end_time = fact_end_time
                 new_fact_id = self.add_fact(new_fact)
 
@@ -478,19 +471,19 @@ class Storage():
                                      SELECT ?, tag_id
                                        FROM fact_tags
                                       WHERE fact_id = ?"""
-                self.execute(tag_update, (new_fact_id, fact["id"])) #clone tags
+                self.execute(tag_update, (new_fact_id, fact.id)) #clone tags
 
             # overlap start
-            elif start_time < fact["start_time"] < end_time:
-                logger.info("Overlapping start of %s" % fact["name"])
+            elif start_time < fact.start_time < end_time:
+                logger.info("Overlapping start of %s" % fact)
                 self.execute("UPDATE facts SET start_time=? WHERE id=?",
-                             (end_time, fact["id"]))
+                             (end_time, fact.id))
 
             # overlap end
             elif start_time < fact_end_time < end_time:
-                logger.info("Overlapping end of %s" % fact["name"])
+                logger.info("Overlapping end of %s" % fact)
                 self.execute("UPDATE facts SET end_time=? WHERE id=?",
-                             (start_time, fact["id"]))
+                             (start_time, fact.id))
 
 
     def add_fact(self, fact, temporary=False):
@@ -529,38 +522,38 @@ class Storage():
             facts = self.get_todays_facts()
 
             previous = None
-            if facts and facts[-1]["end_time"] == None:
-                previous = facts[-1]
+            if facts and facts[-1].end_time == None:
+                previous = fact[-1]
 
-            if previous and previous['start_time'] <= start_time:
+            if previous and previous.start_time <= start_time:
                 # check if maybe that is the same one, in that case no need to restart
-                if previous["activity_id"] == activity_id \
-                   and set(previous["tags"]) == set([tag[1] for tag in tags]) \
-                   and (previous["description"] or "") == (fact.description or ""):
+                if previous.activity_id == activity_id \
+                   and set(previous.tags) == set([tag[1] for tag in tags]) \
+                   and (previous.description or "") == (fact.description or ""):
                     return None
 
                 # if no description is added
                 # see if maybe previous was too short to qualify as an activity
-                if not previous["description"] \
-                   and 60 >= (start_time - previous['start_time']).seconds >= 0:
-                    self._remove_fact(previous['id'])
+                if not previous.description \
+                   and 60 >= (start_time - previous.start_time).seconds >= 0:
+                    self._remove_fact(previous.id)
 
                     # now that we removed the previous one, see if maybe the one
                     # before that is actually same as the one we want to start
                     # (glueing)
-                    if len(facts) > 1 and 60 >= (start_time - facts[-2]['end_time']).seconds >= 0:
+                    if len(facts) > 1 and 60 >= (start_time - facts[-2].end_time).seconds >= 0:
                         before = facts[-2]
-                        if before["activity_id"] == activity_id \
-                           and set(before["tags"]) == set([tag[1] for tag in tags]):
+                        if before.activity_id == activity_id \
+                           and set(before.tags) == set([tag[1] for tag in tags]):
                             # resume and return
                             update = """
                                        UPDATE facts
                                           SET end_time = null
                                         WHERE id = ?
                             """
-                            self.execute(update, (before["id"],))
+                            self.execute(update, (before.id,))
 
-                            return before["id"]
+                            return before.id
                 else:
                     # otherwise stop
                     update = """
@@ -568,7 +561,7 @@ class Storage():
                                   SET end_time = ?
                                 WHERE id = ?
                     """
-                    self.execute(update, (start_time, previous["id"]))
+                    self.execute(update, (start_time, previous.id))
 
 
         # done with the current activity, now we can solve overlaps
@@ -593,7 +586,8 @@ class Storage():
         params = [(fact_id, tag[0]) for tag in tags]
         self.execute(insert, params)
 
-        self.__remove_index([fact_id])
+        self._remove_index([fact_id])
+
         logger.info("fact successfully added, with id #{}".format(fact_id))
         return fact_id
 
@@ -609,12 +603,12 @@ class Storage():
 
     def get_facts(self, date, end_date = None, search_terms = ""):
         split_time = conf.day_start
-        datetime_from = dt.datetime.combine(date, split_time)
+        start = dt.datetime.combine(date, split_time)
 
         end_date = end_date or date
-        datetime_to = dt.datetime.combine(end_date, split_time) + dt.timedelta(days=1, seconds=-1)
+        end = dt.datetime.combine(end_date, split_time) + dt.timedelta(days=1, seconds=-1)
 
-        logger.info("searching for facts from {} to {}".format(datetime_from, datetime_to))
+        logger.info("searching for facts from %s to %s" % (start, end))
 
         query = """
                    SELECT a.id AS id,
@@ -634,7 +628,7 @@ class Storage():
 
         if search_terms:
             # check if we need changes to the index
-            self.__check_index(datetime_from, datetime_to)
+            self._check_index(start, end)
 
             # flip the query around when it starts with "not "
             reverse_search_terms = search_terms.lower().startswith("not ")
@@ -649,12 +643,10 @@ class Storage():
 
         query += " ORDER BY a.start_time, e.name"
 
-        facts = self.fetchall(query, (self._unsorted_localized,
-                                      datetime_from,
-                                      datetime_to))
+        fact_dicts = self.fetchall(query, (self._unsorted, start, end))
 
-        #first let's put all tags in an array
-        facts = self._group_tags(facts)
+        # put all tags in an array and convert to Fact instances
+        facts = self._create_facts(fact_dicts)
 
         res = []
         for fact in facts:
@@ -662,16 +654,16 @@ class Storage():
 
             # if fact has no end time, set the last minute of the day,
             # or current time if fact has happened in last 12 hours
-            if fact["end_time"]:
-                fact_end_time = fact["end_time"]
-            elif (hamster_today() == fact["start_time"].date()) or \
-                 (hamster_now() - fact["start_time"]) <= dt.timedelta(hours=12):
+            if fact.end_time:
+                fact_end_time = fact.end_time
+            elif (hamster_today() == fact.start_time.date()) or \
+                 (hamster_now() - fact.start_time) <= dt.timedelta(hours=12):
                 fact_end_time = hamster_now()
             else:
-                fact_end_time = fact["start_time"]
+                fact_end_time = fact.start_time
 
-            fact_start_date = fact["start_time"].date() \
-                - dt.timedelta(1 if fact["start_time"].time() < split_time else 0)
+            fact_start_date = fact.start_time.date() \
+                - dt.timedelta(1 if fact.start_time.time() < split_time else 0)
             fact_end_date = fact_end_time.date() \
                 - dt.timedelta(1 if fact_end_time.time() < split_time else 0)
             fact_date_span = fact_end_date - fact_start_date
@@ -679,7 +671,7 @@ class Storage():
             # check if the task spans across two dates
             if fact_date_span.days == 1:
                 datetime_split = dt.datetime.combine(fact_end_date, split_time)
-                start_date_duration = datetime_split - fact["start_time"]
+                start_date_duration = datetime_split - fact.start_time
                 end_date_duration = fact_end_time - datetime_split
                 if start_date_duration > end_date_duration:
                     # most of the task was done during the previous day
@@ -691,12 +683,11 @@ class Storage():
                 # (in which case we give up)
                 fact_date = fact_start_date
 
-            if fact["start_time"] < datetime_from - dt.timedelta(days=30):
+            if fact.start_time < start - dt.timedelta(days=30):
                 # ignoring old on-going facts
                 continue
 
-            fact["date"] = fact_date
-            fact["delta"] = fact_end_time - fact["start_time"]
+            fact.date = fact_date
             res.append(fact)
 
         return res
@@ -707,7 +698,7 @@ class Storage():
                       "DELETE FROM facts where id = ?"]
         self.execute(statements, [(fact_id,)] * 2)
 
-        self.__remove_index([fact_id])
+        self._remove_index([fact_id])
 
     def get_category_activities(self, category_id=(-1)):
         """returns list of activities, if category is specified, order by name
@@ -774,7 +765,7 @@ class Storage():
 
         self.execute("delete from categories where id = ?", (id, ))
 
-        self.__remove_index(affected_ids)
+        self._remove_index(affected_ids)
 
 
     def add_activity(self, name, category_id = None, temporary = False):
@@ -798,7 +789,7 @@ class Storage():
         self.execute(query, (name, name.lower(), category_id, deleted))
         return self._last_insert_rowid()
 
-    def __remove_index(self, ids):
+    def _remove_index(self, ids):
         """remove affected ids from the index"""
         if not ids:
             return
@@ -807,7 +798,7 @@ class Storage():
         self.execute("DELETE FROM fact_index where id in (%s)" % ids)
 
 
-    def __check_index(self, start_date, end_date):
+    def _check_index(self, start, end):
         """check if maybe index needs rebuilding in the time span"""
         index_query = """SELECT id
                            FROM facts
@@ -815,7 +806,8 @@ class Storage():
                             AND start_time <= ?
                             AND id not in(select id from fact_index)"""
 
-        rebuild_ids = ",".join([str(res[0]) for res in self.fetchall(index_query, (start_date, end_date))])
+        rebuild_ids = ",".join([str(res[0]) for res in
+                                self.fetchall(index_query, (start, end))])
 
         if rebuild_ids:
             query = """
@@ -823,7 +815,7 @@ class Storage():
                               a.start_time AS start_time,
                               a.end_time AS end_time,
                               a.description as description,
-                              b.name AS name, b.id as activity_id,
+                              b.name AS activity, b.id as activity_id,
                               coalesce(c.name, ?) as category,
                               e.name as tag
                          FROM facts a
@@ -835,11 +827,11 @@ class Storage():
                      ORDER BY a.id
             """ % rebuild_ids
 
-            facts = self._group_tags(self.fetchall(query, (self._unsorted_localized, )))
+            facts = self._create_facts(self.fetchall(query, (self._unsorted, )))
 
             insert = """INSERT INTO fact_index (id, name, category, description, tag)
                              VALUES (?, ?, ?, ?, ?)"""
-            params = [(f['id'], f['name'], f['category'], f['description'], " ".join(f['tags']))
+            params = [(f.id, f.activity, f.category, f.description, ' '.join(f.tags))
                       for f in facts]
 
             self.executemany(insert, params)
@@ -853,19 +845,19 @@ class Storage():
         res = ' '.join((w.strip() for w in query.split()))[:200]
         res += '... :: ' if len(res) > 200 else ' :: '
         if params:
-            res += ','.join(('%s' % p for p in params))
+            res += ','.join((str(p) for p in params))
         return res[:300] + (' ...' if len(res) > 300 else '')
 
 
     """ Here be dragons (lame connection/cursor wrappers) """
-    def get_connection(self):
+    @property
+    def connection(self):
         if self.con is None:
-            self.con = sqlite.connect(self.db_path, detect_types=sqlite.PARSE_DECLTYPES|sqlite.PARSE_COLNAMES)
-            self.con.row_factory = sqlite.Row
+            self.con = sqlite3.connect(self.db_path, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+            self.con.row_factory = sqlite3.Row
 
         return self.con
 
-    connection = property(get_connection, None)
 
     def fetchall(self, query, params = None):
         con = self.connection

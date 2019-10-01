@@ -310,14 +310,12 @@ class Totals(graphics.Scene):
     def set_facts(self, facts):
         totals = defaultdict(lambda: defaultdict(dt.timedelta))
         for fact in facts:
-            end_time = fact['end_time'] or stuff.hamster_now()
-            delta = end_time - fact['start_time']
-            for key in ('category', 'activity'):
-                totals[key][fact[key]] += delta
-
-            for tag in fact['tags']:
-                totals["tag"][tag] += delta
-
+            end_time = fact.end_time or stuff.hamster_now()
+            delta = end_time - fact.start_time
+            totals['category'][fact.category] += delta
+            totals['activity'][fact.activity] += delta
+            for tag in fact.tags:
+                totals['tag'][tag] += delta
 
         for key, group in totals.items():
             totals[key] = sorted(group.items(), key=lambda x: x[1], reverse=True)
@@ -544,12 +542,15 @@ class Overview(Controller):
 
     def on_add_activity_clicked(self, button):
         self.start_new_fact(clone_selected=True, fallback=True)
+        self.find_facts()
 
     def on_stop_clicked(self, button):
         self.storage.stop_tracking()
+        self.find_facts()
 
     def on_row_activated(self, tree, day, fact):
         dialogs.edit.show(self, fact_id=fact.id)
+        self.find_facts()
 
     def on_row_delete_called(self, tree, fact):
         self.storage.remove_fact(fact.id)
@@ -624,6 +625,7 @@ class Overview(Controller):
             dialogs.edit.show(self, base_fact=None)
         elif self.fact_tree.current_fact or fallback:
             dialogs.edit.show(self, base_fact=self.fact_tree.current_fact)
+        self.find_facts()
 
     def close_window(self):
         self.window.destroy()

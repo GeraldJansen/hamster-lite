@@ -464,7 +464,7 @@ class FactTree(graphics.Scene, gtk.Scrollable):
     def set_facts(self, facts):
         # FactTree adds attributes to its facts. isolate these side effects
         # copy the id too; most of the checks are based on id here.
-        self.facts = [Fact(**f) for f in facts]
+        self.facts = [fact.copy() for fact in facts]
         del facts  # make sure facts is not used by inadvertance below.
 
         self.y = 0
@@ -483,7 +483,7 @@ class FactTree(graphics.Scene, gtk.Scrollable):
             by_date[fact.date].append(fact)
 
         days = []
-        for i in range((end-start).days + 1):
+        for i in range((end - start).days + 1):
             current_date = start + dt.timedelta(days=i)
             days.append((current_date, by_date[current_date]))
 
