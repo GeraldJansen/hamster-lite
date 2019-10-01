@@ -30,7 +30,7 @@ import datetime as dt
 from hamster import reports
 from hamster import logger as hamster_logger
 from hamster.lib import default_logger, Fact, stuff
-from hamster.storage import db
+import hamster.storage as db
 
 logger = default_logger(__file__)
 

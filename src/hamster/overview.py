@@ -24,7 +24,7 @@ import itertools
 import webbrowser
 
 from collections import defaultdict
-from math import ceil, floor
+from math import ceil
 
 from gi.repository import Gtk as gtk
 from gi.repository import Gdk as gdk
@@ -42,7 +42,7 @@ from hamster.lib.runtime import dialogs, Controller
 from hamster.lib.pytweener import Easing
 from hamster.widgets.dates import RangePick
 from hamster.widgets.facttree import FactTree
-from hamster.storage import db
+import hamster.storage as db
 
 
 class HeaderBar(gtk.HeaderBar):
@@ -314,7 +314,6 @@ class Totals(graphics.Scene):
             delta = end_time - fact['start_time']
             for key in ('category', 'activity'):
                 totals[key][fact[key]] += delta
-                #totals[key][getattr(fact, key)] += delta
 
             for tag in fact['tags']:
                 totals["tag"][tag] += delta

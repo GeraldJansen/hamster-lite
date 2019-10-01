@@ -38,7 +38,7 @@ from copy import deepcopy
 from hamster.lib import Fact, looks_like_time
 from hamster.lib import stuff
 from hamster.lib import graphics
-from hamster.storage import db
+import hamster.storage as db
 
 def extract_search(text):
     fact = Fact.parse(text)
@@ -295,7 +295,9 @@ class ActivityEntry(gtk.Entry):
             label = fact["activity"]
             if fact["category"]:
                 label += "@%s" % fact["category"]
+
             suggestions[label] += days
+
             if fact["tags"]:
                 label += " #%s" % (" #".join(fact["tags"]))
                 suggestions[label] += days
