@@ -20,7 +20,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Project Hamster.  If not, see <http://www.gnu.org/licenses/>.
 
-'''A script to control the applet from the command line.'''
+'''A script to control Hamster time tracker from the command line.'''
 
 import sys, os
 import argparse
@@ -29,7 +29,7 @@ import datetime as dt
 
 from hamster import reports
 from hamster import logger as hamster_logger
-from hamster.lib import default_logger, Fact, stuff
+from hamster.lib import default_logger, Fact, stuff, DATE_FMT
 import hamster.storage as db
 
 logger = default_logger(__file__)
@@ -79,52 +79,18 @@ def fact_dict(fact_data, with_date):
     return fact
 
 
-_DATETIME_PATTERN = ('^((?P<relative>-\d.+)?|('
-                     '(?P<date1>\d{4}-\d{2}-\d{2})?'
-                     '(?P<time1> ?\d{2}:\d{2})?'
-                     '(?P<dash> ?-)?'
-                     '(?P<date2> ?\d{4}-\d{2}-\d{2})?'
-                     '(?P<time2> ?\d{2}:\d{2})?)?)'
-                     '(?P<rest>\D.+)?$')
-_DATETIME_REGEX = re.compile(_DATETIME_PATTERN)
-def parse_datetime_range(arg):
-    '''Parse a date and time.'''
-    match = _DATETIME_REGEX.match(arg)
-    if not match:
-        return None, None
+def parse_dates(args):
+    '''Parse dates according to DATE_FMT.'''
+    try:
+        start_date = dt.datetime.strptime(args[0], DATE_FMT).date()
+    except:
+        start_date = stuff.hamster_today()
+    try:
+        end_date = dt.datetime.strptime(args[1], DATE_FMT).date()
+    except:
+        end_date = start_date
 
-    fragments = match.groupdict()
-    rest = (fragments['rest'] or '').strip()
-
-    # bail out early on relative minutes
-    if fragments['relative']:
-        delta_minutes = int(fragments['relative'])
-        return stuff.hamster_now() - dt.timedelta(minutes=delta_minutes), rest
-
-    start_time, end_time = None, None
-
-    def to_time(timestr):
-        timestr = (timestr or "").strip()
-        try:
-            return dt.datetime.strptime(timestr, "%Y-%m-%d").date()
-        except ValueError:
-            try:
-                return dt.datetime.strptime(timestr, "%H:%M").time()
-            except ValueError:
-                pass
-        return None
-
-    now = stuff.hamster_now().time()
-
-    if fragments['date1'] or fragments['time1']:
-        start_time = dt.datetime.combine(to_time(fragments['date1']) or dt.date.today(),
-                                         to_time(fragments['time1']) or now)
-    if fragments['date2'] or fragments['time2']:
-        end_time = dt.datetime.combine(to_time(fragments['date2']) or start_time or dt.date.today(),
-                                       to_time(fragments['time2']) or now)
-
-    return start_time, end_time
-
+    return start_date, end_date
 
 
 class HamsterClient(object):
@@ -182,13 +148,11 @@ class HamsterClient(object):
             print("Error: please specify activity")
             return
 
-        activity = args[0]
-        start_time, end_time = parse_datetime_range(" ".join(args[1:]))
-        start_time = start_time or stuff.hamster_now()
+        fact = Fact.parse(' '.join(args))
+        print('new fact:', fact)
+        fact.start_time = fact.start_time or stuff.hamster_now()
 
-        self.storage.add_fact(Fact(activity,
-                                         start_time = start_time,
-                                         end_time = end_time))
+        self.storage.add_fact(fact)
 
 
     def stop(self, *args):
@@ -197,17 +161,12 @@ class HamsterClient(object):
 
 
     def export(self, *args):
-        args = args or []
-        export_format, start_time, end_time = "html", None, None
-        if args:
-            export_format = args[0]
-        start_time, end_time = parse_datetime_range(" ".join(args[1:]))
-
-        start_time = start_time or dt.datetime.combine(dt.date.today(), dt.time())
-        end_time = end_time or start_time.replace(hour=23, minute=59, second=59)
-        facts = self.storage.get_facts(start_time, end_time)
-
-        writer = reports.simple(facts, start_time.date(), end_time.date(), export_format)
+        args = args or ['html']
+        export_format = "html" if not args else args[0]
+        args = [] if len(args) == 1 else args[1:]
+        start_date, end_date = parse_dates(args)
+        facts = self.storage.get_facts(start_date, end_date)
+        writer = reports.simple(facts, start_date, end_date, export_format)
 
 
     def _activities(self, search=""):
@@ -238,11 +197,8 @@ class HamsterClient(object):
 
     def list(self, *times):
         """list facts within a date range"""
-        start_time, end_time = parse_datetime_range(" ".join(times or []))
-
-        start_time = start_time or dt.datetime.combine(dt.date.today(), dt.time())
-        end_time = end_time or start_time.replace(hour=23, minute=59, second=59)
-        self._list(start_time, end_time)
+        start_date, end_date = parse_dates(args or [])
+        self._list(start_date, end_date)
 
 
     def current(self, *args):
@@ -258,21 +214,15 @@ class HamsterClient(object):
     def search(self, *args):
         """search for activities by name and optionally within a date range"""
         args = args or []
-        search = ""
-        if args:
-            search = args[0]
-
-        start_time, end_time = parse_datetime_range(" ".join(args[1:]))
-
-        start_time = start_time or dt.datetime.combine(dt.date.today(), dt.time())
-        end_time = end_time or start_time.replace(hour=23, minute=59, second=59)
-        self._list(start_time, end_time, search)
+        search = "" if not args else args[0]
+        args = [] if len(args) < 2 else args[1:]
+        start_date, end_date = parse_dates(args)
+        self._list(start_date, end_date, search)
 
 
-    def _list(self, start_time, end_time, search=""):
+    def _list(self, start_date, end_date, search=""):
         """Print a listing of activities"""
-        facts = self.storage.get_facts(start_time, end_time, search)
-
+        facts = self.storage.get_facts(start_date, end_date, search)
 
         headers = {'activity': _("Activity"),
                    'category': _("Category"),
@@ -282,12 +232,10 @@ class HamsterClient(object):
                    'end': _("End"),
                    'duration': _("Duration")}
 
-
         # print date if it is not the same day
-        print_with_date = start_time.date() != end_time.date()
+        print_with_date = start_date != end_date
 
         cols = 'start', 'end', 'duration', 'activity', 'category'
-
 
         widths = dict([(col, len(headers[col])) for col in cols])
         for fact in facts:
@@ -334,8 +282,6 @@ class HamsterClient(object):
         print("Total: ", stuff.format_duration(total_duration))
 
         print()
-
-
 
 
 if __name__ == '__main__':
