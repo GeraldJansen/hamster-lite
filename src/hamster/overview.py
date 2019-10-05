@@ -26,6 +26,7 @@ import webbrowser
 from collections import defaultdict
 from math import ceil
 
+from gi.repository import Gio as gio
 from gi.repository import Gtk as gtk
 from gi.repository import Gdk as gdk
 from gi.repository import GObject as gobject
@@ -404,13 +405,20 @@ class Overview(Controller):
     def __init__(self, parent = None):
         Controller.__init__(self, parent)
 
-        self.window.set_position(gtk.WindowPosition.CENTER)
-        self.window.set_default_icon_name("hamster-time-tracker")
-        self.window.set_default_size(700, 500)
-
         self.storage = db.Storage()
         #DEL self.storage.connect("facts-changed", self.on_facts_changed)
         #DEL self.storage.connect("activities-changed", self.on_facts_changed)
+        def on_db_file_changed(monitor, gio_file, event_uri, event):
+            if event == gio.FileMonitorEvent.CHANGES_DONE_HINT:
+                self.find_facts()
+
+        self.__db_file = gio.File.new_for_path(self.storage.db_path)
+        self.__db_monitor = self.__db_file.monitor_file(gio.FileMonitorFlags.WATCH_MOUNTS, None)
+        self.__db_monitor.connect("changed", on_db_file_changed)
+
+        self.window.set_position(gtk.WindowPosition.CENTER)
+        self.window.set_default_icon_name("hamster-time-tracker")
+        self.window.set_default_size(700, 500)
 
         self.header_bar = HeaderBar()
         self.window.set_titlebar(self.header_bar)
@@ -520,6 +528,7 @@ class Overview(Controller):
         self.facts = self.storage.get_facts(start, end, search_terms=search)
         self.fact_tree.set_facts(self.facts)
         self.totals.set_facts(self.facts)
+        self.window.show_all()
 
     def on_range_selected(self, button, range_type, start, end):
         self.find_facts()

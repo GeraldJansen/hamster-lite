@@ -33,6 +33,7 @@ import hamster.storage as db
 class Controller(gobject.GObject):
     __gsignals__ = {
         "on-close": (gobject.SignalFlags.RUN_LAST, gobject.TYPE_NONE, ()),
+        "facts-changed": (gobject.SignalFlags.RUN_LAST, gobject.TYPE_NONE, ()),
     }
 
     def __init__(self, parent=None, ui_file=""):
@@ -64,10 +65,6 @@ class Controller(gobject.GObject):
         if not self.parent:
             gtk.main_quit()
         else:
-            """
-            for obj, handler in self.external_listeners:
-                obj.disconnect(handler)
-            """
             self.window.destroy()
             self.window = None
             self.emit("on-close")

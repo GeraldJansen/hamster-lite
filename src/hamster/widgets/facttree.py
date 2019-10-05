@@ -123,7 +123,7 @@ class FactRow(object):
         self.inter_tag_margin = 4
         self.row_margin_H = 5
         self.row_margin_V = 2
-        self.category_offset_V = self.category_label.height * 0.1;
+        self.category_offset_V = 0 #self.category_label.height * 0.1
 
     @property
     def height(self):
