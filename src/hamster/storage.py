@@ -19,7 +19,7 @@
 # along with Project Hamster.  If not, see <http://www.gnu.org/licenses/>.
 
 
-"""separate file for database operations"""
+"""Storage / database operations"""
 
 import logging
 logger = logging.getLogger(__name__)   # noqa: E402
@@ -837,16 +837,29 @@ class Storage():
             self.executemany(insert, params)
 
 
+    last_sql_msg, last_sql_count = "", 0
 
-    def _shorten(self, query, params):
+    def _log_debug(self, query, params):
         """
         Make compact version of query for debug logger.
         """
-        res = ' '.join((w.strip() for w in query.split()))[:200]
-        res += '... :: ' if len(res) > 200 else ' :: '
+        if logger.level > logging.DEBUG: return
+
+        msg = ' '.join((w.strip() for w in query.split()))[:200]
+        msg += '...' if len(msg) > 200 else ''
         if params:
-            res += ','.join((str(p) for p in params))
-        return res[:300] + (' ...' if len(res) > 300 else '')
+            msg += ' :: ' + ','.join((str(p) for p in params))
+        msg = msg[:300] + (' ...' if len(msg) > 300 else '')
+        if msg == self.last_sql_msg:
+            self.last_sql_count += 1
+        else:
+            if self.last_sql_count:
+                logger.debug("last db operation repeated %d time%s"
+                             % (self.last_sql_count,
+                                '' if self.last_sql_count == 1 else 's'))
+            logger.debug(msg)
+            self.last_sql_msg, self.last_sql_count = msg, 0
+        return
 
 
     """ Here be dragons (lame connection/cursor wrappers) """
@@ -862,7 +875,7 @@ class Storage():
     def fetchall(self, query, params = None):
         con = self.connection
         cur = con.cursor()
-        # logger.debug("%s %s" % (query, params))
+        self._log_debug(query, params)
         if params:
             cur.execute(query, params)
         else:
@@ -874,7 +887,7 @@ class Storage():
         return res
 
     def fetchone(self, query, params = None):
-        logger.debug(self._shorten(query, params))
+        self._log_debug(query, params)
         res = self.fetchall(query, params)
         if res:
             return res[0]
@@ -894,7 +907,7 @@ class Storage():
             params = [params]
 
         for state, param in zip(statement, params):
-            logger.debug(self._shorten(state, param))
+            self._log_debug(state, param)
             cur.execute(state, param)
 
         if not self.__con:
@@ -905,7 +918,7 @@ class Storage():
         con = self.__con or self.connection
         cur = self.__cur or con.cursor()
 
-        logger.debug(self._shorten(statement, params))
+        self._log_debug(statement, params)
         cur.executemany(statement, params)
 
         if not self.__con:
@@ -929,6 +942,7 @@ class Storage():
 
         """upgrade DB to hamster version"""
         version = self.fetchone("SELECT version FROM version")["version"]
+        logger.debug("database version is %s" % version)
         current_version = 9
 
         if version < 8:
