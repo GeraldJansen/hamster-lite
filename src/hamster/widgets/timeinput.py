@@ -60,6 +60,9 @@ class TimeInput(gtk.Entry):
         time_box.add(self.time_tree)
         self.popup.add(time_box)
 
+        self.set_icon_from_icon_name(gtk.EntryIconPosition.SECONDARY, "gtk-clear")
+
+        self.connect("icon-release", self._on_icon_release)
         self.connect("button-press-event", self._on_button_press_event)
         self.connect("key-press-event", self._on_key_press_event)
         self.connect("focus-in-event", self._on_focus_in_event)
@@ -180,6 +183,11 @@ class TimeInput(gtk.Entry):
             self.emit("time-entered")
             self.news = False
 
+    def _on_icon_release(self, entry, icon_pos, event):
+        self.grab_focus()
+        self.set_text("")
+        self.emit("changed")
+
     def hide_popup(self):
         if self._parent_click_watcher and self.get_toplevel().handler_is_connected(self._parent_click_watcher):
             self.get_toplevel().disconnect(self._parent_click_watcher)
@@ -197,15 +205,17 @@ class TimeInput(gtk.Entry):
         if self.start_time is None:
             # full 24 hours
             i_time = i_time_0
+            interval = dt.timedelta(minutes = 15)
             end_time = i_time_0 + dt.timedelta(days = 1)
         else:
             # from start time to start time + 12 hours
-            i_time = i_time_0 + dt.timedelta(minutes = 15)
+            interval = dt.timedelta(minutes = 15)
+            i_time = i_time_0 + interval
             end_time = i_time_0 + dt.timedelta(hours = 12)
 
         time = self.figure_time(self.get_text())
         focus_time = dt.datetime.combine(dt.date.today(), time) if time else None
-        hours = gtk.ListStore(gobject.TYPE_STRING)
+        hours = gtk.ListStore(str)
 
         i, focus_row = 0, None
         while i_time < end_time:
@@ -217,14 +227,10 @@ class TimeInput(gtk.Entry):
 
             hours.append([row_text])
 
-            if focus_time and i_time <= focus_time <= i_time + \
-                                                     dt.timedelta(minutes = 30):
+            if focus_time and i_time <= focus_time < i_time + interval:
                 focus_row = i
 
-            if self.start_time is None:
-                i_time += dt.timedelta(minutes = 30)
-            else:
-                i_time += dt.timedelta(minutes = 15)
+            i_time += interval
 
             i += 1
 
@@ -236,12 +242,9 @@ class TimeInput(gtk.Entry):
             selection.select_path(focus_row)
             self.time_tree.scroll_to_cell(focus_row, use_align = True, row_align = 0.4)
 
-
         #move popup under the widget
         alloc = self.get_allocation()
         w = alloc.width
-        if self.start_time is not None:
-            w = w * 2
         self.time_tree.set_size_request(w, alloc.height * 5)
 
         window = self.get_parent_window()

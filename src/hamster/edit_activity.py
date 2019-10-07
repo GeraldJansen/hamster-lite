@@ -27,7 +27,8 @@ import datetime as dt
 from hamster import widgets
 from hamster.lib.configuration import conf
 from hamster.lib.runtime import runtime, load_ui_file
-from hamster.lib.stuff import hamster_today, hamster_now, escape_pango
+from hamster.lib.stuff import (
+    hamsterday_time_to_datetime, hamster_today, hamster_now, escape_pango)
 from hamster.lib import Fact
 
 
@@ -46,10 +47,11 @@ class CustomFactController(gobject.GObject):
         # None if creating a new fact, instead of editing one
         self.fact_id = fact_id
 
-        self.activity_entry = self.get_widget('activity')
-        self.category_entry = self.get_widget('category')
+        self.category_entry = widgets.CategoryEntry(widget=self.get_widget('category'))
+        self.activity_entry = widgets.ActivityEntry(widget=self.get_widget('activity'),
+                                                    category_widget=self.category_entry)
 
-        self.cmdline = widgets.ActivityEntry()
+        self.cmdline = widgets.CmdLineEntry()
         self.get_widget("command line box").add(self.cmdline)
         self.cmdline.connect("focus_in_event", self.on_cmdline_focus_in_event)
         self.cmdline.connect("focus_out_event", self.on_cmdline_focus_out_event)
@@ -76,11 +78,12 @@ class CustomFactController(gobject.GObject):
 
         self.save_button = self.get_widget("save_button")
 
+        # this will set self.master_is_cmdline
         self.cmdline.grab_focus()
-        self.storage = runtime.storage
+
         if fact_id:
             # editing
-            self.fact = Fact(**runtime.storage.get_fact(fact_id))
+            self.fact = runtime.storage.get_fact(fact_id)
             self.date = self.fact.date
             self.window.set_title(_("Update activity"))
         else:
@@ -116,9 +119,6 @@ class CustomFactController(gobject.GObject):
         self.validate_fields()
         self.window.show_all()
 
-    def on_description_changed(self, text):
-        self.validate_fields()
-
     def on_prev_day_clicked(self, button):
         self.increment_date(-1)
 
@@ -150,14 +150,6 @@ class CustomFactController(gobject.GObject):
         description = buf.get_text(buf.get_start_iter(), buf.get_end_iter(), 0)
         return description.strip()
 
-    def on_save_button_clicked(self, button):
-        fact = self.validate_fields()
-        if self.fact_id:
-            runtime.storage.update_fact(self.fact_id, fact)
-        else:
-            runtime.storage.add_fact(fact)
-        self.close_window()
-
     def on_activity_changed(self, widget):
         if not self.master_is_cmdline:
             self.fact.activity = self.activity_entry.get_text()
@@ -172,12 +164,15 @@ class CustomFactController(gobject.GObject):
 
     def on_cmdline_changed(self, widget):
         if self.master_is_cmdline:
-            previous_description = self.fact.description
             fact = Fact.parse(self.cmdline.get_text(), date=self.date)
-            if not fact.description:
-                fact.description = previous_description
+            previous_cmdline_fact = self.cmdline_fact
+            # copy the entered fact before any modification
+            self.cmdline_fact = fact.copy()
             if fact.start_time is None:
                 fact.start_time = hamster_now()
+            if fact.description == previous_cmdline_fact.description:
+                # no change to description here, keep the main one
+                fact.description = self.fact.description
             self.fact = fact
             self.update_fields()
 
@@ -187,12 +182,24 @@ class CustomFactController(gobject.GObject):
     def on_cmdline_focus_out_event(self, widget, event):
         self.master_is_cmdline = False
 
-    def on_end_date_changed(self, widget):
-        if self.fact.end_time and not self.master_is_cmdline:
-            time = self.fact.end_time.time()
-            self.fact.end_time = dt.datetime.combine(self.end_date.date, time)
+    def on_description_changed(self, text):
+        if not self.master_is_cmdline:
+            self.fact.description = self.figure_description()
             self.validate_fields()
             self.update_cmdline()
+
+    def on_end_date_changed(self, widget):
+        if not self.master_is_cmdline:
+            if self.fact.end_time:
+                time = self.fact.end_time.time()
+                self.fact.end_time = dt.datetime.combine(self.end_date.date, time)
+                self.validate_fields()
+                self.update_cmdline()
+            elif self.end_date.date:
+                # No end time means on-going, hence date would be meaningless.
+                # And a default end date may be provided when end time is set,
+                # so there should never be a date without time.
+                self.end_date.date = None
 
     def on_end_time_changed(self, widget):
         if not self.master_is_cmdline:
@@ -206,27 +213,37 @@ class CustomFactController(gobject.GObject):
 
     def on_start_date_changed(self, widget):
         if not self.master_is_cmdline:
-            previous_date = self.fact.start_time.date()
-            new_date = self.start_date.date
-            delta = new_date - previous_date
-            self.fact.start_time += delta
-            if self.fact.end_time:
-                # preserve fact duration
-                self.fact.end_time += delta
-                self.end_date.date = self.fact.end_time
-            self.date = self.fact.date
+            if self.fact.start_time:
+                previous_date = self.fact.start_time.date()
+                new_date = self.start_date.date
+                delta = new_date - previous_date
+                self.fact.start_time += delta
+                if self.fact.end_time:
+                    # preserve fact duration
+                    self.fact.end_time += delta
+                    self.end_date.date = self.fact.end_time
+            self.date = self.fact.date or hamster_today()
             self.validate_fields()
             self.update_cmdline()
 
     def on_start_time_changed(self, widget):
         if not self.master_is_cmdline:
-            previous_time = self.fact.start_time.time()
+            # note: resist the temptation to preserve duration here;
+            # for instance, end time might be at the beginning of next fact.
             new_time = self.start_time.time
             if new_time:
-                date = self.fact.start_time.date()
-                self.fact.start_time = dt.datetime.combine(date, new_time)
+                if self.fact.start_time:
+                    new_start_time = dt.datetime.combine(self.fact.start_time.date(),
+                                                         new_time)
+                else:
+                    # date not specified; result must fall in current hamster_day
+                    new_start_time = hamsterday_time_to_datetime(hamster_today(),
+                                                                 new_time)
             else:
-                self.fact.start_time = None
+                new_start_time = None
+            self.fact.start_time = new_start_time
+            # let start_date extract date or handle None
+            self.start_date.date = new_start_time
             self.validate_fields()
             self.update_cmdline()
 
@@ -237,12 +254,12 @@ class CustomFactController(gobject.GObject):
 
     def update_cmdline(self, select=None):
         """Update the cmdline entry content."""
-        stripped_fact = self.fact.copy(description=None)
-        label = stripped_fact.serialized(prepend_date=False)
+        self.cmdline_fact = self.fact.copy(description=None)
+        label = self.cmdline_fact.serialized(prepend_date=False)
         with self.cmdline.handler_block(self.cmdline.checker):
             self.cmdline.set_text(label)
             if select:
-                time_str = stripped_fact.serialized_time(prepend_date=False)
+                time_str = self.cmdline_fact.serialized_time(prepend_date=False)
                 self.cmdline.select_region(0, len(time_str))
 
     def update_fields(self):
@@ -302,25 +319,6 @@ class CustomFactController(gobject.GObject):
             self.update_status(status="wrong", markup="Missing activity")
             return None
 
-        description_box_content = self.figure_description()
-        if fact.description and description_box_content:
-            escaped_cmd = escape_pango(fact.description)
-            escaped_box = escape_pango(description_box_content)
-            markup = dedent("""\
-                             <b>Duplicate description</b>
-                             <i>command line</i>:
-                             '{}'
-                             <i>description box</i>:
-                             '''{}'''
-                             """).format(escaped_cmd, escaped_box)
-            self.update_status(status="wrong",
-                               markup=markup)
-            return None
-
-        # Good to go, no description ambiguity
-        if description_box_content:
-            fact.description = description_box_content
-
         if (fact.delta < dt.timedelta(0)) and fact.end_time:
             fact.end_time += dt.timedelta(days=1)
             markup = dedent("""\
@@ -354,8 +352,18 @@ class CustomFactController(gobject.GObject):
     def on_close(self, widget, event):
         self.close_window()
 
+    def on_save_button_clicked(self, button):
+        if self.fact_id:
+            runtime.storage.update_fact(self.fact_id, self.fact)
+        else:
+            runtime.storage.add_fact(self.fact)
+        self.close_window()
+
     def on_window_key_pressed(self, tree, event_key):
-        popups = self.cmdline.popup.get_property("visible");
+        popups = (self.cmdline.popup.get_property("visible")
+                  or self.start_time.popup.get_property("visible")
+                  or self.end_time.popup.get_property("visible")
+                  or self.tags_entry.popup.get_property("visible"))
 
         if (event_key.keyval == gdk.KEY_Escape or \
            (event_key.keyval == gdk.KEY_w and event_key.state & gdk.ModifierType.CONTROL_MASK)):
@@ -369,7 +377,8 @@ class CustomFactController(gobject.GObject):
                 return False
             if self.description_box.has_focus():
                 return False
-            self.on_save_button_clicked(None)
+            if self.validate_fields():
+                self.on_save_button_clicked(None)
 
     def close_window(self):
         if not self.parent:

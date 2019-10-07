@@ -198,7 +198,7 @@ class CompleteTree(graphics.Scene):
 
 
 
-class ActivityEntry(gtk.Entry):
+class CmdLineEntry(gtk.Entry):
     def __init__(self, updating=True, **kwargs):
         gtk.Entry.__init__(self)
 
@@ -461,3 +461,135 @@ class ActivityEntry(gtk.Entry):
         self.popup.move(x, y)
         self.popup.resize(entry_alloc.width, tree_h)
         self.popup.show_all()
+
+
+class ActivityEntry():
+    """Activity entry widget.
+
+    widget (gtk.Entry): the associated activity entry
+    category_widget (gtk.Entry): the associated category entry
+    """
+    def __init__(self, widget=None, category_widget=None, **kwds):
+        # widget and completion may be defined already
+        # e.g. in the glade edit_activity.ui file
+        self.widget = widget
+        if not self.widget:
+            self.widget = gtk.Entry(**kwds)
+
+        self.category_widget = category_widget
+
+        self.completion = self.widget.get_completion()
+        if not self.completion:
+            self.completion = gtk.EntryCompletion()
+            self.widget.set_completion(self.completion)
+
+        # text to display/filter on, activity, category
+        self.text_column = 0
+        self.activity_column = 1
+        self.category_column = 2
+
+        self.model = gtk.ListStore(str, str, str)
+        self.completion.set_model(self.model)
+        self.completion.set_text_column(self.text_column)
+        self.completion.set_match_func(self.match_func, None)
+
+        self.connect("icon-release", self.on_icon_release)
+        self.connect("focus-in-event", self.on_focus_in_event)
+        self.completion.connect('match-selected', self.on_match_selected)
+
+    def match_func(self, completion, key, iter, *user_data):
+        if not key.strip():
+            # show all keys if entry is empty
+            return True
+        else:
+            # return whether the entered string is
+            # anywhere in the first column data
+            stripped_key = key.strip()
+            activities = self.model.get_value(iter, self.activity_column).lower()
+            categories = self.model.get_value(iter, self.category_column).lower()
+            key_in_activity = stripped_key in activities
+            key_in_category = stripped_key in categories
+            return key_in_activity or key_in_category
+
+    def on_focus_in_event(self, widget, event):
+        self.populate_completions()
+
+    def on_icon_release(self, entry, icon_pos, event):
+        self.grab_focus()
+        self.set_text("")
+        self.emit("changed")
+
+    def on_match_selected(self, entry, model, iter):
+        activity_name = model[iter][self.activity_column]
+        category_name = model[iter][self.category_column]
+        combined = model[iter][self.text_column]
+        if self.category_widget:
+            self.set_text(activity_name)
+            self.category_widget.set_text(category_name)
+        else:
+            self.set_text(combined)
+        return True  # prevent the standard callback from overwriting text
+
+    def populate_completions(self):
+        self.model.clear()
+        for category in runtime.storage.get_categories():
+            category_name = category['name']
+            category_id = category['id']
+            for activity in runtime.storage.get_category_activities(category_id):
+                activity_name = activity["name"]
+                text = "{}@{}".format(activity_name, category_name)
+                self.model.append([text, activity_name, category_name])
+
+    def __getattr__(self, name):
+        return getattr(self.widget, name)
+
+
+class CategoryEntry():
+    """Category entry widget.
+
+    widget (gtk.Entry): the associated category entry
+    """
+    def __init__(self, widget=None, **kwds):
+        # widget and completion are already defined
+        # e.g. in the glade edit_activity.ui file
+        self.widget = widget
+        if not self.widget:
+            self.widget = gtk.Entry(**kwds)
+
+        self.completion = self.widget.get_completion()
+        if not self.completion:
+            self.completion = gtk.EntryCompletion()
+            self.widget.set_completion(self.completion)
+
+        self.model = gtk.ListStore(str)
+        self.completion.set_model(self.model)
+        self.completion.set_text_column(0)
+        self.completion.set_match_func(self.match_func, None)
+
+        self.widget.connect("icon-release", self.on_icon_release)
+        self.widget.connect("focus-in-event", self.on_focus_in_event)
+
+    def match_func(self, completion, key, iter, *user_data):
+        if not key.strip():
+            # show all keys if entry is empty
+            return True
+        else:
+            # return whether the entered string is
+            # anywhere in the first column data
+            return key.strip() in self.model.get_value(iter, 0)
+
+    def on_focus_in_event(self, widget, event):
+        self.populate_completions()
+
+    def on_icon_release(self, entry, icon_pos, event):
+        self.widget.grab_focus()
+        self.widget.set_text("")
+        self.emit("changed")
+
+    def populate_completions(self):
+        self.model.clear()
+        for category in runtime.storage.get_categories():
+            self.model.append([category['name']])
+
+    def __getattr__(self, name):
+        return getattr(self.widget, name)

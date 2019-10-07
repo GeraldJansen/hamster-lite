@@ -58,7 +58,6 @@ class TagsEntry(gtk.Entry):
 
         self.connect("icon-press", self._on_icon_press)
         self.connect("key-press-event", self._on_key_press_event)
-        self.connect("key-release-event", self._on_key_release_event)
         self.connect("focus-out-event", self._on_focus_out_event)
 
         self._parent_click_watcher = None # bit lame but works
@@ -72,8 +71,8 @@ class TagsEntry(gtk.Entry):
         self.popup = None
 
 
-    #def refresh_ac_tags(self, event):
-    #    self.ac_tags = None
+    def refresh_ac_tags(self, event):
+        self.ac_tags = None
 
     def get_tags(self):
         # splits the string by comma and filters out blanks
@@ -134,18 +133,14 @@ class TagsEntry(gtk.Entry):
         self.popup.resize(w, height)
         self.popup.show_all()
 
-
-
-    def complete_inline(self):
-        return
-
     def refresh_activities(self):
         # scratch activities and categories so that they get repopulated on demand
         self.activities = None
         self.categories = None
 
     def populate_suggestions(self):
-        self.ac_tags = self.ac_tags or [tag["name"] for tag in runtime.storage.get_tags(only_autocomplete=True)]
+        self.ac_tags = self.ac_tags or [tag["name"] for tag in
+                                        runtime.storage.get_tags(only_autocomplete=True)]
 
         cursor_tag = self.get_cursor_tag()
 
@@ -165,9 +160,11 @@ class TagsEntry(gtk.Entry):
         self.hide_popup()
 
     def _on_icon_press(self, entry, icon_pos, event):
+        # otherwise Esc could not hide popup
+        self.grab_focus()
         # toggle popup
         if self.popup.get_visible():
-            # remove trailing comma is any
+            # remove trailing comma if any
             self.update_tagsline(add=False)
             self.hide_popup()
         else:
@@ -175,30 +172,6 @@ class TagsEntry(gtk.Entry):
             self.update_tagsline(add=True)
             self.populate_suggestions()
             self.show_popup()
-
-    def _on_key_release_event(self, entry, event):
-        if (event.keyval in (gdk.KEY_Return, gdk.KEY_KP_Enter)):
-            if self.popup.get_property("visible"):
-                if self.get_text():
-                    self.hide_popup()
-                return True
-            else:
-                if self.get_text():
-                    self.emit("tags-selected")
-                return False
-        elif (event.keyval == gdk.KEY_Escape):
-            if self.popup.get_property("visible"):
-                self.hide_popup()
-                return True
-            else:
-                return False
-        else:
-            self.populate_suggestions()
-            self.show_popup()
-
-            if event.keyval not in (gdk.KEY_Delete, gdk.KEY_BackSpace):
-                self.complete_inline()
-
 
     def get_cursor_tag(self):
         #returns the tag on which the cursor is on right now
@@ -230,6 +203,11 @@ class TagsEntry(gtk.Entry):
         self.update_tagsline()
 
     def update_tagsline(self, add=False):
+        """Update tags line text.
+
+        If add is True, prepare to add tags to the list:
+        a comma is appended and the popup is displayed.
+        """
         text = ", ".join(self.tags)
         if add and text:
             text = "{}, ".format(text)
@@ -247,6 +225,27 @@ class TagsEntry(gtk.Entry):
                     return False
             else:
                 return False
+
+        elif event.keyval in (gdk.KEY_Return, gdk.KEY_KP_Enter):
+            if self.popup.get_property("visible"):
+                if self.get_text():
+                    self.hide_popup()
+                return True
+            else:
+                if self.get_text():
+                    self.emit("tags-selected")
+                return False
+
+        elif event.keyval == gdk.KEY_Escape:
+            if self.popup.get_property("visible"):
+                self.hide_popup()
+                return True
+            else:
+                return False
+
+        else:
+            self.populate_suggestions()
+            self.show_popup()
 
         return False
 
