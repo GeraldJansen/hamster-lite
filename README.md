@@ -43,11 +43,12 @@ git clone --branch=hamster-lite git@github.com:GeraldJansen/hamster.git hamster-
 sudo apt install gettext intltool python3-gi-cairo python3-distutils python3-xdg
 ```
 
-##### other
+##### Other
 
 Current (late 2019) dependencies for
 [Hamster](https://github.com/projecthamster/hamster/blob/master/README.md)
-should work.
+should work, keeping in mind that the dbus and gconf dependencies are no longer 
+needed.
 
 #### Trying the development version
 
