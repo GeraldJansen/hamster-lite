@@ -95,8 +95,8 @@ class RuntimeStore(Singleton):
 
     def __init__(self):
         try:
-            from hamster import defs
-            self.data_dir = os.path.join(defs.DATA_DIR, "hamsterlite")
+            from hamster_lite import defs
+            self.data_dir = os.path.join(defs.DATA_DIR, "hamster-lite")
             self.version = defs.VERSION
         except:
             # if defs is not there, we are running from sources
@@ -107,7 +107,7 @@ class RuntimeStore(Singleton):
         self.data_dir = os.path.realpath(self.data_dir)
         self.storage = db.Storage()
         self.home_data_dir = os.path.realpath(
-            os.path.join(xdg_data_home, "hamsterlite"))
+            os.path.join(xdg_data_home, "hamster-lite"))
 
 
 runtime = RuntimeStore()

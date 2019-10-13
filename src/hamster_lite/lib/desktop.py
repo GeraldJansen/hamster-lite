@@ -25,7 +25,7 @@ from calendar import timegm
 from gi.repository import GObject as gobject
 
 
-from hamster-lite import idle
+from hamster_lite import idle
 from hamster_lite.lib.configuration import conf
 import dbus
 
