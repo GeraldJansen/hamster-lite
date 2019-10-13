@@ -6,7 +6,7 @@ import locale, gettext
 def setup_i18n():
     #determine location of po files
     try:
-        from hamster import defs
+        from hamster_lite import defs
     except:
         defs = None
 
@@ -20,15 +20,15 @@ def setup_i18n():
         locale_dir = os.path.realpath(os.path.join(defs.DATA_DIR, "locale"))
 
         for module in (locale,gettext):
-            module.bindtextdomain('hamster-time-tracker', locale_dir)
-            module.textdomain('hamster-time-tracker')
+            module.bindtextdomain('hamster-lite', locale_dir)
+            module.textdomain('hamster-lite')
 
-            module.bind_textdomain_codeset('hamster-time-tracker','utf8')
+            module.bind_textdomain_codeset('hamster-lite','utf8')
 
-        gettext.install("hamster-time-tracker", locale_dir)
+        gettext.install("hamster-lite", locale_dir)
 
     else:
-        gettext.install("hamster-time-tracker-uninstalled")
+        gettext.install("hamster-lite")
 
 
 def C_(ctx, s):

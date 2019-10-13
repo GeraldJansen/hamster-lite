@@ -27,7 +27,7 @@ import datetime as dt
 from gi.repository import GObject as gobject
 from gi.repository import Gtk as gtk
 from xdg.BaseDirectory import xdg_data_home, xdg_config_home
-import hamster.storage as db
+import hamster_lite.storage as db
 
 
 class Controller(gobject.GObject):

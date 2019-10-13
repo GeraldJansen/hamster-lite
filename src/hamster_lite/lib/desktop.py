@@ -25,8 +25,8 @@ from calendar import timegm
 from gi.repository import GObject as gobject
 
 
-from hamster import idle
-from hamster.lib.configuration import conf
+from hamster-lite import idle
+from hamster_lite.lib.configuration import conf
 import dbus
 
 
@@ -93,7 +93,7 @@ class DesktopIntegrations(object):
 
         notification = conn.Notify("Project Hamster",
                                    self._last_notification or 0,
-                                   "hamster-time-tracker",
+                                   "hamster-lite",
                                    summary,
                                    details,
                                    [],

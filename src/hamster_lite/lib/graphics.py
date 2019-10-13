@@ -22,7 +22,7 @@ from gi.repository import GdkPixbuf
 import re
 
 try:
-    from hamster.lib import pytweener
+    from hamster_lite.lib import pytweener
 except: # we can also live without tweener. Scene.animate will not work
     pytweener = None
 

@@ -37,13 +37,13 @@ from gi.repository import PangoCairo as pangocairo
 from gi.repository import Pango as pango
 import cairo
 
-from hamster import widgets, reports
-from hamster.lib import graphics, layout, stuff
-from hamster.lib.runtime import dialogs, Controller
-from hamster.lib.pytweener import Easing
-from hamster.widgets.dates import RangePick
-from hamster.widgets.facttree import FactTree
-import hamster.storage as db
+from hamster_lite import widgets, reports
+from hamster_lite.lib import graphics, layout, stuff
+from hamster_lite.lib.runtime import dialogs, Controller
+from hamster_lite.lib.pytweener import Easing
+from hamster_lite.widgets.dates import RangePick
+from hamster_lite.widgets.facttree import FactTree
+import hamster_lite.storage as db
 
 
 class HeaderBar(gtk.HeaderBar):
@@ -417,7 +417,7 @@ class Overview(Controller):
         self.__db_monitor.connect("changed", on_db_file_changed)
 
         self.window.set_position(gtk.WindowPosition.CENTER)
-        self.window.set_default_icon_name("hamster-time-tracker")
+        self.window.set_default_icon_name("hamster-lite")
         self.window.set_default_size(700, 500)
 
         self.header_bar = HeaderBar()
@@ -455,7 +455,6 @@ class Overview(Controller):
         self.totals = Totals()
         main.pack_start(self.totals, False, True, 1)
 
-        # FIXME: should store and recall date_range from hamster.lib.configuration.conf
         hamster_day = stuff.datetime_to_hamsterday(dt.datetime.today())
         self.header_bar.range_pick.set_range(hamster_day)
         self.header_bar.range_pick.connect("range-selected", self.on_range_selected)
@@ -578,7 +577,7 @@ class Overview(Controller):
         return True
 
     def on_help_clicked(self, menu):
-        uri = "help:hamster-time-tracker"
+        uri = "help:hamster-lite"
         try:
             gtk.show_uri(None, uri, gdk.CURRENT_TIME)
         except gi.repository.GLib.Error:

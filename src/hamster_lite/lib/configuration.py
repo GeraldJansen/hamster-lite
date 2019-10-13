@@ -48,10 +48,10 @@ class ConfStore(Singleton):
 
     def __init__(self):
         self.config = self.DEFAULTS
-        config_dir = os.path.join(xdg_config_home, 'hamsterlite')
+        config_dir = os.path.join(xdg_config_home, 'hamster-lite')
         if not os.path.exists(config_dir):
             os.makedirs(config_dir)
-        self.config_file = os.path.join(config_dir, 'hamster.json')
+        self.config_file = os.path.join(config_dir, 'hamster-lite.json')
         if os.path.exists(self.config_file):
             self._load_config()
         else:

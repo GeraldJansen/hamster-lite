@@ -1,13 +1,13 @@
 # bash completion for hamsterlite
 
-_hamsterlite_helper()
+_hamster-lite_helper()
 {
     local IFS=$'\n'
     COMPREPLY+=( $(
         hamster "$@" 2>/dev/null ) )
 }
 
-_hamsterlite()
+_hamster-lite()
 {
     local cur prev opts base
     COMPREPLY=()
@@ -26,7 +26,7 @@ _hamsterlite()
     case "${prev}" in
 
     start|export)
-        _hamsterlite_helper "assist" "$prev" "$cur"
+        _hamster-lite_helper "assist" "$prev" "$cur"
         return 0
         ;;
 
@@ -35,4 +35,4 @@ _hamsterlite()
    COMPREPLY=($(compgen -W "${opts}" -- ${cur}))
    return 0
 }
-complete -F _hamsterlite hamsterlite
+complete -F _hamster-lite hamster-lite

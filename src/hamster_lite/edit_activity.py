@@ -24,12 +24,12 @@ from textwrap import dedent
 import time
 import datetime as dt
 
-from hamster import widgets
-from hamster.lib.configuration import conf
-from hamster.lib.runtime import runtime, load_ui_file
-from hamster.lib.stuff import (
+from hamster_lite import widgets
+from hamster_lite.lib.configuration import conf
+from hamster_lite.lib.runtime import runtime, load_ui_file
+from hamster_lite.lib.stuff import (
     hamsterday_time_to_datetime, hamster_today, hamster_now, escape_pango)
-from hamster.lib import Fact
+from hamster_lite.lib import Fact
 
 
 class CustomFactController(gobject.GObject):

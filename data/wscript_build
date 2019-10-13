@@ -2,20 +2,20 @@
 # through the recurse("data") command
 
 start_dir = bld.path.find_dir('.')
-bld.install_files('${DATADIR}/hamsterlite', start_dir.ant_glob('*.ui'))
-bld.install_files('${DATADIR}/hamsterlite', 'hamster.db')
-bld.install_files('${DATADIR}/hamsterlite/art', start_dir.ant_glob('art/*.png'))
-bld.install_files('${DATADIR}/hamsterlite', 'report_template.html')
+bld.install_files('${DATADIR}/hamster-lite', start_dir.ant_glob('*.ui'))
+bld.install_files('${DATADIR}/hamster-lite', 'hamster.db')
+bld.install_files('${DATADIR}/hamster-lite/art', start_dir.ant_glob('art/*.png'))
+bld.install_files('${DATADIR}/hamster-lite', 'report_template.html')
 
-bld.install_files('${DATADIR}/icons/hicolor/16x16/apps',   'art/16x16/hamsterlite.png')
-bld.install_files('${DATADIR}/icons/hicolor/22x22/apps',   'art/22x22/hamsterlite.png')
-bld.install_files('${DATADIR}/icons/hicolor/32x32/apps',   'art/32x32/hamsterlite.png')
-bld.install_files('${DATADIR}/icons/hicolor/48x48/apps',   'art/scalable/hamsterlite.png')
-bld.install_files('${DATADIR}/icons/hicolor/scalable/apps','art/scalable/hamsterlite.svg')
+bld.install_files('${DATADIR}/icons/hicolor/16x16/apps',   'art/16x16/hamster-lite.png')
+bld.install_files('${DATADIR}/icons/hicolor/22x22/apps',   'art/22x22/hamster-lite.png')
+bld.install_files('${DATADIR}/icons/hicolor/32x32/apps',   'art/32x32/hamster-lite.png')
+bld.install_files('${DATADIR}/icons/hicolor/48x48/apps',   'art/scalable/hamster-lite.png')
+bld.install_files('${DATADIR}/icons/hicolor/scalable/apps','art/scalable/hamster-lite.svg')
 
-bld.install_files('${DATADIR}/appdata', 'hamsterlite.metainfo.xml')
+bld.install_files('${DATADIR}/appdata', 'hamster-lite.metainfo.xml')
 
-for filename in ["hamsterlite.desktop"]:
+for filename in ["hamster-lite.desktop"]:
     bld(features = "subst",
         source= "%s.in.in" % filename,
         target= "%s.in" % filename,
@@ -26,7 +26,7 @@ for filename in ["hamsterlite.desktop"]:
 bld.add_group()
 
 bld(features = 'intltool_in',
-    source   = 'hamsterlite.desktop.in',
+    source   = 'hamster-lite.desktop.in',
     install_path = '${DATADIR}/applications',
     podir    = '../po',
     flags    = ['-d', '-q', '-u'])

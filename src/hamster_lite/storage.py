@@ -30,9 +30,9 @@ import itertools
 import sqlite3
 from shutil import copy as copyfile
 import datetime as dt
-from hamster.lib import Fact
-from hamster.lib.configuration import conf
-from hamster.lib.stuff import hamster_today, hamster_now
+from hamster_lite.lib import Fact
+from hamster_lite.lib.configuration import conf
+from hamster_lite.lib.stuff import hamster_today, hamster_now
 
 
 class Storage():
@@ -58,7 +58,7 @@ class Storage():
             except ImportError:
                 logger.warning("Could not import xdg - assuming ~/.local/share")
                 xdg_data_home = os.path.join(os.path.expanduser('~'), '.local', 'share')
-            database_dir = os.path.join(xdg_data_home, 'hamster-time-tracker')
+            database_dir = os.path.join(xdg_data_home, 'hamster-lite')
 
         if not os.path.exists(database_dir):
             os.makedirs(database_dir, 0o744)
@@ -76,7 +76,7 @@ class Storage():
                 # make a copy of the empty template hamster.db
                 try:
                     from hamster import defs
-                    data_dir = os.path.join(defs.DATA_DIR, "hamster-time-tracker")
+                    data_dir = os.path.join(defs.DATA_DIR, "hamster-lite")
                 except:
                     # if defs is not there, we are running from sources
                     module_dir = os.path.dirname(os.path.realpath(__file__))
@@ -84,7 +84,7 @@ class Storage():
                         # running as flask app. XXX - detangle
                         data_dir = os.path.join(module_dir, "data")
                     else:
-                        # get ./data from ./src/hamster/storage/db.py (3 levels up)
+                        # get ./data from ./src/hamster_lite/storage/db.py (3 levels up)
                         data_dir = os.path.join(module_dir, '..', '..', '..', 'data')
                 logger.warning("Database not found in %s - installing default from %s!"
                                % (db_path, data_dir))

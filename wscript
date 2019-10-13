@@ -1,6 +1,6 @@
 # -*- python -*-
 VERSION = '0.1'
-APPNAME = 'hamsterlite'
+APPNAME = 'hamster-lite'
 top = '.'
 out = 'build'
 
@@ -20,8 +20,8 @@ def configure(conf):
     conf.env.HAVE_BIND_TEXTDOMAIN_CODESET = 1
 
     conf.env.VERSION = VERSION
-    conf.env.GETTEXT_PACKAGE = "hamsterlite"
-    conf.env.PACKAGE = "hamsterlite"
+    conf.env.GETTEXT_PACKAGE = "hamster-lite"
+    conf.env.PACKAGE = "hamster-lite"
 
     conf.recurse("help")
 
@@ -38,10 +38,10 @@ def options(opt):
 
 
 def build(bld):
-    bld.install_as('${BINDIR}/hamsterlite', "src/hamsterlite", chmod=Utils.O755)
+    bld.install_as('${BINDIR}/hamster-lite', "src/hamster-lite", chmod=Utils.O755)
 
     bld.install_files('${PREFIX}/share/bash-completion/completion',
-                      'src/hamsterlite.bash')
+                      'src/hamster-lite.bash')
 
     bld(features='py',
         source=bld.path.ant_glob('src/**/*.py'),
@@ -49,9 +49,9 @@ def build(bld):
 
     # set correct flags in defs.py
     bld(features="subst",
-        source="src/hamster/defs.py.in",
-        target="src/hamster/defs.py",
-        install_path="${PYTHONDIR}/hamsterlite"
+        source="src/hamster_lite/defs.py.in",
+        target="src/hamster_lite/defs.py",
+        install_path="${PYTHONDIR}/hamster_lite"
         )
 
     bld.recurse("po data help")

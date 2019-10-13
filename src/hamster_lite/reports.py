@@ -33,9 +33,9 @@ from textwrap import dedent
 from calendar import timegm
 from io import StringIO, IOBase
 
-from hamster.lib.runtime import runtime
-from hamster.lib import stuff
-from hamster.lib.i18n import C_
+from hamster_lite.lib.runtime import runtime
+from hamster_lite.lib import stuff
+from hamster_lite.lib.i18n import C_
 
 
 def simple(facts, start_date, end_date, format, path = None):

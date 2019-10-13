@@ -19,7 +19,7 @@
 
 
 from os.path import join
-from hamster.lib.runtime import runtime
+from hamster_lite.lib.runtime import runtime
 from gi.repository import Gtk as gtk
 from gi.repository import Gdk as gdk
 
@@ -50,7 +50,7 @@ class About(object):
         for prop, val in infos.items():
             about.set_property(prop, val)
 
-        about.set_logo_icon_name("hamster-time-tracker")
+        about.set_logo_icon_name("hamster-lite")
 
         about.connect("response", lambda self, *args: self.destroy())
         about.show_all()

@@ -27,10 +27,10 @@ import argparse
 import re
 import datetime as dt
 
-from hamster import reports
-from hamster import logger as hamster_logger
-from hamster.lib import default_logger, Fact, stuff, DATE_FMT
-import hamster.storage as db
+from hamster_lite import reports
+from hamster_lite import logger as hamster_logger
+from hamster_lite.lib import default_logger, Fact, stuff, DATE_FMT
+import hamster_lite.storage as db
 
 logger = default_logger(__file__)
 
@@ -102,7 +102,7 @@ class HamsterClient(object):
     def _launch_window(self, window_name):
         print("Running in devel mode")
         from gi.repository import Gtk as gtk
-        from hamster.lib.runtime import dialogs
+        from hamster_lib.lib.runtime import dialogs
         getattr(dialogs, window_name).show()
         gtk.main()
 
@@ -120,19 +120,6 @@ class HamsterClient(object):
 
     def add(self, *args):
         self._launch_window("edit")
-
-
-    def assist(self, *args):
-        assist_command = args[0] if args else ""
-
-        if assist_command == "start":
-            hamster_client._activities(sys.argv[-1])
-        elif assist_command == "export":
-            formats = "html tsv xml ical".split()
-            chosen = sys.argv[-1]
-            formats = [f for f in formats if not chosen or f.startswith(chosen)]
-            print("\n".join(formats))
-
 
     def toggle(self):
         self.storage.toggle()

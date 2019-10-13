@@ -21,7 +21,7 @@
 import logging
 logger = logging.getLogger(__name__)   # noqa: E402
 
-from hamster.lib.configuration import conf
+from hamster_lite.lib.configuration import conf
 from gi.repository import GObject as gobject
 import dbus, dbus.mainloop.glib
 

@@ -39,7 +39,7 @@
       <image>http://dekoppel.eu/hamster/hamster-overview2.png</image>
     </screenshot>
   </screenshots>
-  <url type="homepage">https://github.com/projecthamster/hamster/wiki</url>
+  <url type="homepage">https://github.com/GeraldJansen/wiki</url>
   <provides>
     <binary>hamster</binary>
   </provides>

@@ -28,7 +28,7 @@ from gi.repository import Gdk as gdk
 from gi.repository import PangoCairo as pangocairo
 from gi.repository import Pango as pango
 
-from hamster.lib import Fact, graphics, stuff
+from hamster_lite.lib import Fact, graphics, stuff
 
 
 class ActionRow(graphics.Sprite):

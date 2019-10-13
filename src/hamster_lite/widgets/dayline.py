@@ -24,8 +24,8 @@ from gi.repository import Gtk as gtk
 from gi.repository import GObject as gobject
 from gi.repository import PangoCairo as pangocairo
 
-from hamster.lib import stuff, graphics, pytweener
-from hamster.lib.configuration import conf
+from hamster_lite.lib import stuff, graphics, pytweener
+from hamster_lite.lib.configuration import conf
 
 
 class Selection(graphics.Sprite):

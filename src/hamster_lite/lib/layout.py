@@ -12,7 +12,7 @@ from gi.repository import GObject as gobject
 from gi.repository import Pango as pango
 from collections import defaultdict
 
-from hamster.lib import graphics
+from hamster_lite.lib import graphics
 
 
 class Widget(graphics.Sprite):

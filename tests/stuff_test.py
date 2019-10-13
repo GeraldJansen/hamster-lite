@@ -1,10 +1,10 @@
 import sys, os.path
-# a convoluted line to add hamster module to absolute path
-sys.path.insert(0, os.path.realpath(os.path.join(os.path.dirname(__file__), "../src")))
+# a convoluted line to add hamster_lite module to absolute path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../src"))
 
 import unittest
-from hamster.lib import Fact
-from hamster.lib.stuff import hamster_now
+from hamster_lite.lib import Fact
+from hamster_lite.lib.stuff import hamster_now
 
 
 class TestActivityInputParsing(unittest.TestCase):

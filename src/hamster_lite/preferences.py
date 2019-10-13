@@ -25,10 +25,10 @@ import datetime as dt
 
 from gettext import ngettext
 
-from hamster.lib.configuration import conf
-from hamster.lib.runtime import runtime, Controller
-from hamster import widgets
-from hamster.lib import stuff
+from hamster_lite.lib.configuration import conf
+from hamster_lite.lib.runtime import runtime, Controller
+from hamster_lite import widgets
+from hamster_lite.lib import stuff
 
 
 def get_prev(selection, model):

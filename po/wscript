@@ -4,4 +4,4 @@
 # Gerald Jansen, 2019
 
 def build(bld):
-    bld(features = 'intltool_po', appname = 'hamsterlite')
+    bld(features = 'intltool_po', appname = 'hamster-lite')

@@ -35,10 +35,10 @@ from gi.repository import Pango as pango
 from collections import defaultdict
 from copy import deepcopy
 
-from hamster.lib import Fact, looks_like_time
-from hamster.lib import stuff
-from hamster.lib import graphics
-import hamster.storage as db
+from hamster_lite.lib import Fact, looks_like_time
+from hamster_lite.lib import stuff
+from hamster_lite.lib import graphics
+import hamster_lite.storage as db
 
 def extract_search(text):
     fact = Fact.parse(text)

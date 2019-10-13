@@ -7,7 +7,7 @@ import re
 
 from copy import deepcopy
 
-from hamster.lib.stuff import (
+from hamster_lite.lib.stuff import (
     datetime_to_hamsterday,
     hamsterday_time_to_datetime,
     hamster_now,
