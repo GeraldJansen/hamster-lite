@@ -1,10 +1,12 @@
 # Hamster-lite
 
+**Work in Progress**
+
 Hamster is time tracking for individuals. It helps you to keep track of how
 much time you have spent during the day on activities you choose to track.
 
 Hamster-lite is an experimental branch of them main
-[Hamster Time Tracker] (https://github.com/projecthamster/hamster/wiki).
+[Hamster Time Tracker](https://github.com/projecthamster/hamster/wiki).
 The sqlite3 database store remains fully interchangeable with the main branch.
 In fact, on first start-up the Hamster DB is copied from
 ~/.local/share/hamster-applet/hamster.db if it exists. The hamster-lite DB is
@@ -22,7 +24,8 @@ that an alternative extension -
 [argos-hamster-plugin](https://github.com/matclab/argos-hamster-plugin) -
 is compatible and can be adapted by substituting `hamster` by `hamster-lite`).
 Extensibility of the backend storage to anything other than the sqlite3 DB
-has also been removed.
+has also been removed. Configuration data is stored in a json file 
+(i.e. no gconf/dconf dependency).
 
 
 ## Installation
@@ -37,7 +40,7 @@ git clone --branch=hamster-lite git@github.com:GeraldJansen/hamster.git hamster-
 ##### Debian-based (tested in Ubuntu 19.04)
 
 ```bash
-sudo apt install gettext intltool gconf2 gir1.2-gconf-2.0 python3-gi-cairo python3-distutils python3-dbus python3-xdg
+sudo apt install gettext intltool python3-gi-cairo python3-distutils python3-xdg
 ```
 
 ##### other
@@ -51,7 +54,7 @@ should work.
 To use the development version (backup `hamster-lite.db` first !):
 
 ```
-cd hamster-lite && ./hamster-lite
+cd hamster-lite && ./hamster-lite  (or ./hamster-lite --help)
 ```
 
 (Note there are no dbus daemons that need to be stopped or restarted as for the
