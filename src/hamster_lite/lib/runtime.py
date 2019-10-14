@@ -159,22 +159,22 @@ class Dialogs(Singleton):
        sense"""
     def __init__(self):
         def get_edit_class():
-            from hamster.edit_activity import CustomFactController
+            from hamster_lite.edit_activity import CustomFactController
             return CustomFactController
         self.edit = OneWindow(get_edit_class)
 
         def get_overview_class():
-            from hamster.overview import Overview
+            from hamster_lite.overview import Overview
             return Overview
         self.overview = OneWindow(get_overview_class)
 
         def get_about_class():
-            from hamster.about import About
+            from hamster_lite.about import About
             return About
         self.about = OneWindow(get_about_class)
 
         def get_prefs_class():
-            from hamster.preferences import PreferencesEditor
+            from hamster_lite.preferences import PreferencesEditor
             return PreferencesEditor
         self.prefs = OneWindow(get_prefs_class)
 
