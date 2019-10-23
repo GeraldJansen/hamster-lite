@@ -478,6 +478,8 @@ class ActivityEntry():
 
         self.category_widget = category_widget
 
+        # internal list of actions added to the suggestions
+        self._action_list = []
         self.completion = self.widget.get_completion()
         if not self.completion:
             self.completion = gtk.EntryCompletion()
@@ -488,14 +490,41 @@ class ActivityEntry():
         self.activity_column = 1
         self.category_column = 2
 
+        # whether the category choice limit the activity suggestions
+        self.filter_on_category = True if self.category_widget else False
         self.model = gtk.ListStore(str, str, str)
         self.completion.set_model(self.model)
         self.completion.set_text_column(self.text_column)
         self.completion.set_match_func(self.match_func, None)
+        # enable selection with up and down arrow
+        self.completion.set_inline_selection(True)
+        # It is not possible to change actions later dynamically;
+        # once actions are removed,
+        # they can not be added back (they are not visible).
+        # => nevermind, showing all actions.
+        self.add_action("show all", "Show all activities")
+        self.add_action("filter on category", "Filter on selected category")
 
         self.connect("icon-release", self.on_icon_release)
         self.connect("focus-in-event", self.on_focus_in_event)
         self.completion.connect('match-selected', self.on_match_selected)
+        self.completion.connect("action_activated", self.on_action_activated)
+
+    def add_action(self, name, text):
+        """Add an action to the suggestions.
+
+        name (str): unique label, use to retrieve the action index.
+        text (str): text used to display the action.
+        """
+        markup = "<i>{}</i>".format(stuff.escape_pango(text))
+        idx = len(self._action_list)
+        self.completion.insert_action_markup(idx, markup)
+        self._action_list.append(name)
+
+    def clear(self, notify=True):
+        self.widget.set_text("")
+        if notify:
+            self.emit("changed")
 
     def match_func(self, completion, key, iter, *user_data):
         if not key.strip():
@@ -511,6 +540,17 @@ class ActivityEntry():
             key_in_category = stripped_key in categories
             return key_in_activity or key_in_category
 
+    def on_action_activated(self, completion, index):
+        name = self._action_list[index]
+        if name == "clear":
+            self.clear(notify=False)
+        elif name == "show all":
+            self.filter_on_category = False
+            self.populate_completions()
+        elif name == "filter on category":
+            self.filter_on_category = True
+            self.populate_completions()
+
     def on_focus_in_event(self, widget, event):
         self.populate_completions()
 
@@ -525,17 +565,23 @@ class ActivityEntry():
         combined = model[iter][self.text_column]
         if self.category_widget:
             self.set_text(activity_name)
-            self.category_widget.set_text(category_name)
+            if not self.filter_on_category:
+                self.category_widget.set_text(category_name)
         else:
             self.set_text(combined)
         return True  # prevent the standard callback from overwriting text
 
     def populate_completions(self):
         self.model.clear()
-        for category in runtime.storage.get_categories():
-            category_name = category['name']
-            category_id = category['id']
-            for activity in runtime.storage.get_category_activities(category_id):
+        if self.filter_on_category:
+            category_names = [self.category_widget.get_text()]
+        else:
+            category_names = [category['name']
+                              for category in runtime.storage.get_categories()]
+        for category_name in category_names:
+            category_id = runtime.storage.get_category_id(category_name)
+            activities = runtime.storage.get_category_activities(category_id)
+            for activity in activities:
                 activity_name = activity["name"]
                 text = "{}@{}".format(activity_name, category_name)
                 self.model.append([text, activity_name, category_name])
@@ -560,6 +606,8 @@ class CategoryEntry():
         if not self.completion:
             self.completion = gtk.EntryCompletion()
             self.widget.set_completion(self.completion)
+        self.completion.insert_action_markup(0, "<i>Clear ({})</i>".format(_("Unsorted")))
+        self.unsorted_action_index = 0
 
         self.model = gtk.ListStore(str)
         self.completion.set_model(self.model)
@@ -568,6 +616,12 @@ class CategoryEntry():
 
         self.widget.connect("icon-release", self.on_icon_release)
         self.widget.connect("focus-in-event", self.on_focus_in_event)
+        self.completion.connect("action_activated", self.on_action_activated)
+
+    def clear(self, notify=True):
+        self.widget.set_text("")
+        if notify:
+            self.emit("changed")
 
     def match_func(self, completion, key, iter, *user_data):
         if not key.strip():
@@ -578,13 +632,17 @@ class CategoryEntry():
             # anywhere in the first column data
             return key.strip() in self.model.get_value(iter, 0)
 
+    def on_action_activated(self, completion, index):
+        if index == self.unsorted_action_index:
+            self.clear(notify=False)
+
     def on_focus_in_event(self, widget, event):
         self.populate_completions()
 
     def on_icon_release(self, entry, icon_pos, event):
         self.widget.grab_focus()
-        self.widget.set_text("")
-        self.emit("changed")
+        # do not emit changed on the primary (clear) button
+        self.clear()
 
     def populate_completions(self):
         self.model.clear()
