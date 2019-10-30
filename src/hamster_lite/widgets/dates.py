@@ -69,10 +69,16 @@ class Calendar():
 class Calendar():
     """Python date interface to a Gtk.Calendar.
 
-    widget (Gtk.Calendar): the associated Gtk widget.
+    widget (Gtk.Calendar):
+        the associated Gtk widget.
+    expander (Gtk.expander):
+        An optional expander which contains the widget.
+        The expander label displays the date.
     """
-    def __init__(self, widget):
+    def __init__(self, widget, expander=None):
         self.widget = widget
+        self.expander = expander
+        self.widget.connect("day-selected", self.on_date_changed)
 
     @property
     def date(self):
@@ -98,6 +104,13 @@ class Calendar():
             day = value.day
             self.widget.select_month(month, year)
             self.widget.select_day(day)
+
+    def on_date_changed(self, widget):
+        if self.expander:
+            if self.date:
+                self.expander.set_label(self.date.strftime("%A %Y-%m-%d"))
+            else:
+                self.expander.set_label("")
 
     def __getattr__(self, name):
         return getattr(self.widget, name)
