@@ -2,16 +2,15 @@
 
 **Work in Progress**
 
-Hamster is time tracking for individuals. It helps you to keep track of how
+Hamster is a personal time tracking tool. It helps you to keep track of how
 much time you have spent during the day on activities you choose to track.
 
-Hamster-lite is an experimental fork of the main
-[Hamster Time Tracker](https://github.com/projecthamster/hamster/wiki).
-The sqlite3 database store remains fully interchangeable.
-In fact, on first start-up the Hamster DB is copied from
-~/.local/share/hamster-applet/hamster.db if it exists. The hamster-lite DB is
-normally ~/.local/share/hamster-lite/hamster-lite.db (depends on
-xdg\_data_home).
+Hamster-lite is an experimental fork of the main [Hamster Time
+Tracker](https://github.com/projecthamster/hamster/wiki).  The sqlite3 database
+store remains fully interchangeable. In fact, on first start-up the Hamster DB
+is copied from hamster-time-tracker (or older hamster-applet) in ~/.local/share
+if it exists. The hamster-lite DB is normally
+~/.local/share/hamster-lite/hamster-lite.db (depends on xdg\_data_home).
 
 User documentation for this version remains largely the same as that of
 the main Hamster application. A static copy is available online
@@ -24,7 +23,7 @@ that an alternative extension -
 [argos-hamster-plugin](https://github.com/matclab/argos-hamster-plugin) -
 is compatible and can be adapted by substituting `hamster` by `hamster-lite`).
 Extensibility of the backend storage to anything other than the sqlite3 DB
-has also been removed. Configuration data is stored in a json file 
+has also been removed. Configuration data is stored in a json file
 (i.e. no gconf/dconf dependency).
 
 
@@ -47,7 +46,7 @@ sudo apt install gettext intltool python3-gi-cairo python3-distutils python3-xdg
 
 Current (late 2019) dependencies for
 [Hamster](https://github.com/projecthamster/hamster/blob/master/README.md)
-should work, keeping in mind that the dbus and gconf dependencies are no longer 
+should work, keeping in mind that the dbus and gconf dependencies are no longer
 needed.
 
 #### Trying the development version
