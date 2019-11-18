@@ -272,7 +272,7 @@ class HamsterClient(object):
 
 
 if __name__ == '__main__':
-    from hamster.lib import i18n
+    from hamster_lite.lib import i18n
     i18n.setup_i18n()
 
     usage = _(

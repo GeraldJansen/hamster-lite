@@ -50,7 +50,7 @@ def datetime_to_hamsterday(civil_date_time):
         return None
 
     # work around cyclic imports
-    from hamster.lib.configuration import conf
+    from hamster_lite.lib.configuration import conf
 
     if civil_date_time.time() < conf.day_start:
         # early morning, between midnight and day_start
@@ -87,7 +87,7 @@ def hamsterday_time_to_datetime(hamsterday, time):
     """
 
     # work around cyclic imports
-    from hamster.lib.configuration import conf
+    from hamster_lite.lib.configuration import conf
 
     if time < conf.day_start:
         # early morning, between midnight and day_start
