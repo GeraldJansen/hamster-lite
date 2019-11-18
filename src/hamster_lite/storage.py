@@ -103,7 +103,7 @@ class Storage():
     def update_fact(self, fact_id, fact, temporary = False):
         self.start_transaction()
         self._remove_fact(fact_id)
-        result = self.add_fact(fact, temporary)
+        result = self.add_fact(fact)
         self.end_transaction()
         return result
 
@@ -316,7 +316,7 @@ class Storage():
     def get_category_id(self, name):
         """returns category by it's name"""
         if not name:
-            return UNSORTED_ID
+            return -1
 
         query = """
                    SELECT id from categories
@@ -366,10 +366,11 @@ class Storage():
             fact_tags = list(fact_tags)
 
             # first one is as good as the last one: convert to Fact
-            grouped_fact = Fact(**fact_tags[0])
-            grouped_fact.tags = [ft["tag"] for ft in fact_tags if ft["tag"]]
+            grouped_fact = dict(**fact_tags[0])
+            grouped_fact['tags'] = [f['tag'] for f in fact_tags if f['tag']]
+            grouped_fact.pop('tag')
 
-            facts.append(grouped_fact)
+            facts.append(Fact(**grouped_fact))
         return facts
 
 
@@ -489,7 +490,7 @@ class Storage():
                              (start_time, fact.id))
 
 
-    def add_fact(self, fact, temporary=False):
+    def add_fact(self, fact):
 
         logger.info("adding fact {}".format(fact))
 
@@ -509,12 +510,9 @@ class Storage():
                 category_id = self.add_category(fact.category)
 
         # try to find activity, resurrect if not temporary
-        activity_id = self.get_activity_by_name(fact.activity,
-                                                category_id,
-                                                resurrect = not temporary)
+        activity_id = self.get_activity_by_name(fact.activity, category_id)
         if not activity_id:
-            activity_id = self.add_activity(fact.activity,
-                                            category_id, temporary)
+            activity_id = self.add_activity(fact.activity, category_id)
         else:
             activity_id = activity_id['id']
 

@@ -23,7 +23,7 @@ TIME_FMT = "%H:%M"
 tag_re = re.compile(r"""
     [\s,]*     # any spaces or commas (or nothing)
     \#          # hash character
-    ([^#\s]+)  # the tag (anything but # or spaces)
+    ([^#\s,]+)  # the tag (anything but #, @, spaces or comma)
     [\s#,]*    # any spaces, #, or commas (or nothing)
     $           # end of text
 """, flags=re.VERBOSE)
@@ -73,8 +73,9 @@ def figure_time(str_time):
 
 
 class Fact(object):
-    def __init__(self, activity="", category=None, description=None, tags=[],
-                 start_time=None, end_time=None, id=None, activity_id=None, **kwargs):
+    def __init__(self, activity="", category=None, description=None, tags=None,
+                 start_time=None, end_time=None, id=None, activity_id=None,
+                 category_id=None):
         """Homogeneous chunk of activity.
 
         The category, description and tags must be passed explicitly.
@@ -90,11 +91,12 @@ class Fact(object):
         self.activity = activity
         self.category = category
         self.description = description
-        self.tags = tags
+        self.tags = tags or []
         self.start_time = start_time
         self.end_time = end_time
         self.id = id
         self.activity_id = activity_id
+        self.category_id = category_id
 
     # TODO: might need some cleanup
     def as_dict(self):
@@ -337,15 +339,21 @@ def parse_fact(text, phase=None, res=None, date=None):
             if not m:
                 break
             tag = m.group(1)
-            tags.append(tag)
             # strip the matched string (including #)
+            backup_text = remaining_text
             remaining_text = remaining_text[:m.start()]
+            # empty remaining text means that activity is starting with a '#'
+            if remaining_text:
+                tags.append(tag)
+            else:
+                remaining_text = backup_text
+                break
         # put tags back in input order
         res["tags"] = list(reversed(tags))
         return parse_fact(remaining_text, "activity", res, date)
 
     if "activity" in phases:
-        activity = re.split("[@|#|,]", text, 1)[0]
+        activity = re.split("[@|,]", text, 1)[0]
         if looks_like_time(activity):
             # want meaningful activities
             return res
