@@ -1,13 +1,9 @@
 #!/usr/bin/env python3
 # - coding: utf-8 -
 
-# Copyright (C) 2010 Matías Ribecky <matias at mribecky.com.ar>
-# Copyright (C) 2010-2012 Toms Bauģis <toms.baugis@gmail.com>
-# Copyright (C) 2012 Ted Smith <tedks at cs.umd.edu>
+# This file is part of 'hamster-lite'.
 
-# This file is part of Project Hamster.
-
-# Project Hamster is free software: you can redistribute it and/or modify
+# 'hamster-lite' is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
@@ -18,9 +14,15 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with Project Hamster.  If not, see <http://www.gnu.org/licenses/>.
+# along with 'hamster-lite'.  If not, see <http://www.gnu.org/licenses/>.
 
-'''A script to control Hamster time tracker from the command line.'''
+# This software is based heavily on Project Hamster
+# Copyright (C) 2007-2009 Toms Bauģis <toms.baugis at gmail.com>.
+# See https://github.com/projecthamster/hamster/graphs/contributors.
+# It also borrows code from the `hamster-gtk` rewrite by
+# https://github.com/projecthamster/hamster-gtk/blob/develop/AUTHORS.rst.
+
+'''A script to control Hamster-lite time tracker from the command line.'''
 
 import sys, os
 import argparse

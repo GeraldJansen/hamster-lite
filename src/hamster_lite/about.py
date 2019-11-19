@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2007, 2008 Toms Bauģis <toms.baugis at gmail.com>
+# This file is part of 'hamster-lite'.
 
-# This file is part of Project Hamster.
-
-# Project Hamster is free software: you can redistribute it and/or modify
+# 'hamster-lite' is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
@@ -15,7 +13,13 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with Project Hamster.  If not, see <http://www.gnu.org/licenses/>.
+# along with 'hamster-lite'.  If not, see <http://www.gnu.org/licenses/>.
+
+# This software is based heavily on Project Hamster
+# Copyright (C) 2007-2009 Toms Bauģis <toms.baugis at gmail.com>,
+# https://github.com/projecthamster/hamster.
+# It also borrows code from the `hamster-gtk` rewrite by
+# https://github.com/projecthamster/hamster-gtk/blob/develop/AUTHORS.rst.
 
 
 from os.path import join
@@ -28,18 +32,18 @@ class About(object):
         about = gtk.AboutDialog()
         self.window = about
         infos = {
-            "program-name" : _("Time Tracker"),
-            "name" : _("Time Tracker"), #this should be deprecated in gtk 2.10
+            "program-name" : _("Hamster-lite Time Tracker"),
             "version" : runtime.version,
-            "comments" : _("Project Hamster — track your time"),
-            "copyright" : _("Copyright © 2007–2010 Toms Bauģis and others"),
-            "website" : "http://projecthamster.wordpress.com/",
-            "website-label" : _("Project Hamster Website"),
-            "title": _("About Time Tracker"),
+            "comments" : _("Your personal time keeping tool"),
+            "copyright" : _("Copyright © 2019 Gerald Jansen"),
+            "website" : "https://github.com/GeraldJansen/hamster-lite/wiki/",
+            "website-label" : _("Hamster-lite Github Wiki"),
+            "title": _("About Hamster-lite"),
             "wrap-license": True
         }
 
-        about.set_authors(["Toms Bauģis <toms.baugis@gmail.com>",
+        about.set_authors(["Gerald Jansen <gjansen@ownmail.net>",
+                           "Toms Bauģis <toms.baugis@gmail.com>",
                            "Patryk Zawadzki <patrys@pld-linux.org>",
                            "Pēteris Caune <cuu508@gmail.com>",
                            "Juanje Ojeda <jojeda@emergya.es>"])
