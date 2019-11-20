@@ -1,5 +1,7 @@
 # -*- python -*-
-VERSION = '0.1'
+from subprocess import getstatusoutput
+rc, output = getstatusoutput("git describe --tags --always --dirty=+")
+VERSION = '0.1.0' if rc else output
 APPNAME = 'hamster-lite'
 top = '.'
 out = 'build'

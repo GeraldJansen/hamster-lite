@@ -111,9 +111,6 @@ class HamsterClient(object):
     def overview(self, *args):
         self._launch_window("overview")
 
-    def statistics(self, *args):
-        self._launch_window("statistics")
-
     def about(self, *args):
         self._launch_window("about")
 
@@ -272,6 +269,10 @@ class HamsterClient(object):
 
         print()
 
+    def version(self):
+        from hamster.lib.configuration import runtime
+        print(runtime.version)
+
 
 if __name__ == '__main__':
     from hamster_lite.lib import i18n
@@ -291,8 +292,9 @@ Actions:
     * activities: List all the activities names, one per line.
     * categories: List all the categories names, one per line.
 
-    * overview / statistics / about: launch specific window
+    * overview / add / prefs / about: launch specific window
 
+    * version: Show the hamster-lite version
 Time formats:
     * 'YYYY-MM-DD hh:mm': If start-date is missing, it will default to today.
       If end-date is missing, it will default to start-date.
