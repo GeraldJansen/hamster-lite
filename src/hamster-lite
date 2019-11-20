@@ -270,7 +270,7 @@ class HamsterClient(object):
         print()
 
     def version(self):
-        from hamster.lib.configuration import runtime
+        from hamster_lite.lib.runtime import runtime
         print(runtime.version)
 
 
