@@ -34,11 +34,10 @@ from hamster_lite.lib import Fact
 from hamster_lite.lib.configuration import conf
 from hamster_lite.lib.stuff import hamster_today, hamster_now
 
-UNSORTED_ID = -1
 
 class Storage():
     con = None # Connection will be created on demand
-    def __init__(self, unsorted="Unsorted", database_dir=None):
+    def __init__(self, unsorted="", database_dir=None):
         """
         Delayed setup so we don't do everything at the same time (?)
         """
