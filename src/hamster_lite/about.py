@@ -27,10 +27,10 @@ from hamster_lite.lib.runtime import runtime
 from gi.repository import Gtk as gtk
 from gi.repository import Gdk as gdk
 
-class About(object):
-    def __init__(self, parent = None):
-        about = gtk.AboutDialog()
-        self.window = about
+class About(gtk.AboutDialog):
+    def __init__(self, parent=None):
+        super().__init__()
+        self.parent = parent
         infos = {
             "program-name" : _("Hamster-lite Time Tracker"),
             "version" : runtime.version,
@@ -42,19 +42,19 @@ class About(object):
             "wrap-license": True
         }
 
-        about.set_authors(["Gerald Jansen <gjansen@ownmail.net>",
+        self.set_authors(["Gerald Jansen <gjansen@ownmail.net>",
                            "Toms Bauģis <toms.baugis@gmail.com>",
                            "Patryk Zawadzki <patrys@pld-linux.org>",
                            "Pēteris Caune <cuu508@gmail.com>",
                            "Juanje Ojeda <jojeda@emergya.es>"])
-        about.set_artists(["Kalle Persson <kalle@kallepersson.se>"])
+        self.set_artists(["Kalle Persson <kalle@kallepersson.se>"])
 
-        about.set_translator_credits(_("translator-credits"))
+        self.set_translator_credits(_("translator-credits"))
 
         for prop, val in infos.items():
-            about.set_property(prop, val)
+            self.set_property(prop, val)
 
-        about.set_logo_icon_name("hamster-lite")
+        self.set_logo_icon_name("hamster-lite")
 
-        about.connect("response", lambda self, *args: self.destroy())
-        about.show_all()
+        self.connect("response", lambda self, *args: self.destroy())
+        self.show_all()
