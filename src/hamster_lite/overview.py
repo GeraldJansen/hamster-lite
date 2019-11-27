@@ -40,11 +40,11 @@ import cairo
 from hamster_lite import widgets, reports
 from hamster_lite.lib import graphics, layout, stuff
 from hamster_lite.lib.runtime import dialogs, Controller
+from hamster_lite.lib.configuration import conf
 from hamster_lite.lib.pytweener import Easing
 from hamster_lite.widgets.dates import RangePick
 from hamster_lite.widgets.facttree import FactTree
-import hamster_lite.storage as db
-
+from hamster_lite.about import About
 
 class HeaderBar(gtk.HeaderBar):
     def __init__(self):
@@ -52,8 +52,10 @@ class HeaderBar(gtk.HeaderBar):
         self.set_show_close_button(True)
 
         box = gtk.Box(False)
-        self.time_back = gtk.Button.new_from_icon_name("go-previous-symbolic", gtk.IconSize.MENU)
-        self.time_forth = gtk.Button.new_from_icon_name("go-next-symbolic", gtk.IconSize.MENU)
+        self.time_back = gtk.Button.new_from_icon_name(
+            "go-previous-symbolic", gtk.IconSize.MENU)
+        self.time_forth = gtk.Button.new_from_icon_name(
+            "go-next-symbolic", gtk.IconSize.MENU)
 
         box.add(self.time_back)
         box.add(self.time_forth)
@@ -96,6 +98,8 @@ class HeaderBar(gtk.HeaderBar):
         self.system_menu.append(self.menu_prefs)
         self.menu_help = gtk.MenuItem(label=_("Help"))
         self.system_menu.append(self.menu_help)
+        self.menu_about = gtk.MenuItem(label=_("About"))
+        self.system_menu.append(self.menu_about)
         self.system_menu.show_all()
 
 
@@ -215,7 +219,6 @@ class HorizontalBarChart(graphics.Sprite):
         self.layout.set_justify(True)
         self.layout.set_alignment(pango.Alignment.RIGHT)
         self.label_height = self.layout.get_pixel_size()[1]
-        # should be updated by the parent
         self.label_color = gdk.RGBA()
         self.bar_color = gdk.RGBA()
 
@@ -405,30 +408,32 @@ class Totals(graphics.Scene):
         self.tag_chart.bar_color = bar_color
 
 
-class Overview(Controller):
-    def __init__(self, parent = None):
-        Controller.__init__(self, parent)
+class Overview(gtk.ApplicationWindow):
+    def __init__(self, app=None, *args, **kwargs):
+        """Initialize overview."""
+        super().__init__(*args, **kwargs)
 
-        self.storage = db.Storage()
-        #DEL self.storage.connect("facts-changed", self.on_facts_changed)
-        #DEL self.storage.connect("activities-changed", self.on_facts_changed)
+        self._app = app
+        self._app.signal.connect("facts-changed", self.on_facts_changed)
+        self._app.signal.connect("activities-changed", self.on_facts_changed)
         def on_db_file_changed(monitor, gio_file, event_uri, event):
             if event == gio.FileMonitorEvent.CHANGES_DONE_HINT:
                 self.find_facts()
 
-        self.__db_file = gio.File.new_for_path(self.storage.db_path)
-        self.__db_monitor = self.__db_file.monitor_file(gio.FileMonitorFlags.WATCH_MOUNTS, None)
+        self.__db_file = gio.File.new_for_path(self._app.db.db_path)
+        self.__db_monitor = self.__db_file.monitor_file\
+            (gio.FileMonitorFlags.WATCH_MOUNTS, None)
         self.__db_monitor.connect("changed", on_db_file_changed)
 
-        self.window.set_position(gtk.WindowPosition.CENTER)
-        self.window.set_default_icon_name("hamster-lite")
-        self.window.set_default_size(700, 500)
+        self.set_position(gtk.WindowPosition.CENTER)
+        self.set_default_icon_name("hamster-lite")
+        self.set_default_size(700, 500)
 
         self.header_bar = HeaderBar()
-        self.window.set_titlebar(self.header_bar)
+        self.set_titlebar(self.header_bar)
 
         main = gtk.Box(orientation=1)
-        self.window.add(main)
+        self.add(main)
 
         self.report_chooser = None
 
@@ -469,16 +474,17 @@ class Overview(Controller):
         self.header_bar.menu_prefs.connect("activate", self.on_prefs_clicked)
         self.header_bar.menu_export.connect("activate", self.on_export_clicked)
         self.header_bar.menu_help.connect("activate", self.on_help_clicked)
+        self.header_bar.menu_about.connect("activate", self.on_about_clicked)
 
 
-        self.window.connect("key-press-event", self.on_key_press)
+        self.connect("key-press-event", self.on_key_press)
 
         self.facts = []
         self.find_facts()
 
         # update every minute (necessary if an activity is running)
         gobject.timeout_add_seconds(60, self.on_timeout)
-        self.window.show_all()
+        self.show_all()
 
 
     def on_key_press(self, window, event):
@@ -515,25 +521,26 @@ class Overview(Controller):
                 # Resume/run; clear separation between Ctrl-R and Ctrl-N
                 self.start_new_fact(clone_selected=True, fallback=False)
             elif event.keyval == gdk.KEY_space:
-                self.storage.stop_tracking()
+                self._app.db.stop_tracking()
             elif event.keyval in (gdk.KEY_KP_Add, gdk.KEY_plus):
                 # same as pressing the + icon
                 self.start_new_fact(clone_selected=True, fallback=True)
 
         if event.keyval == gdk.KEY_Escape:
-            self.close_window()
+            if conf.get('escape_quits_main'):
+                self._app.quit()
 
     def find_facts(self):
         start, end = self.header_bar.range_pick.get_range()
         search_active = self.header_bar.search_button.get_active()
         search = "" if not search_active else self.filter_entry.get_text()
         search = "%s*" % search if search else "" # search anywhere
-        self.facts = self.storage.get_facts(start, end, search_terms=search)
+        self.facts = self._app.db.get_facts(start, end, search_terms=search)
         self.fact_tree.set_facts(self.facts)
         self.totals.set_facts(self.facts)
         self.header_bar.stop_button.set_sensitive(
             self.facts and not self.facts[-1].end_time)
-        self.window.show_all()
+        self.show_all()
 
     def on_range_selected(self, button, range_type, start, end):
         self.find_facts()
@@ -559,7 +566,7 @@ class Overview(Controller):
         self.find_facts()
 
     def on_stop_clicked(self, button):
-        self.storage.stop_tracking()
+        self._app.db.stop_tracking()
         self.find_facts()
 
     def on_row_activated(self, tree, day, fact):
@@ -567,7 +574,7 @@ class Overview(Controller):
         self.find_facts()
 
     def on_row_delete_called(self, tree, fact):
-        self.storage.remove_fact(fact.id)
+        self._app.db.remove_fact(fact.id)
         self.find_facts()
 
     def on_search_toggled(self, button):
@@ -583,12 +590,12 @@ class Overview(Controller):
         return True
 
     def on_help_clicked(self, menu):
-        uri = "help:hamster-lite"
+        uri = "help:hamster-time-tracker"
         try:
             gtk.show_uri(None, uri, gdk.CURRENT_TIME)
         except gi.repository.GLib.Error:
             msg = sys.exc_info()[1].args[0]
-            dialog = gtk.MessageDialog(self.window, 0, gtk.MessageType.ERROR,
+            dialog = gtk.MessageDialog(self, 0, gtk.MessageType.ERROR,
                                        gtk.ButtonsType.CLOSE,
                                        _("Failed to open {}").format(uri))
             fmt = _('Error: "{}" - is a help browser installed on this computer?')
@@ -596,9 +603,14 @@ class Overview(Controller):
             dialog.run()
             dialog.destroy()
 
+
+    def on_about_clicked(self, menu):
+        dialog = About()
+        dialog.run()
+        dialog.destroy()
+
     def on_prefs_clicked(self, menu):
         dialogs.prefs.show(self)
-
 
     def on_export_clicked(self, menu):
         if self.report_chooser:
@@ -640,9 +652,3 @@ class Overview(Controller):
         elif self.fact_tree.current_fact or fallback:
             dialogs.edit.show(self, base_fact=self.fact_tree.current_fact)
         self.find_facts()
-
-    def close_window(self):
-        self.window.destroy()
-        self.window = None
-        self._gui = None
-        self.emit("on-close")

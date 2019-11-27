@@ -120,6 +120,18 @@ class Storage():
         if facts and not facts[-1].end_time:
             self._touch_fact(facts[-1], end_time or hamster_now())
 
+    def get_ongoing_fact(self):
+        """Get ongoing fact, if any"""
+
+        query = "select id from facts where end_time is null" \
+                "  order by start_time desc limit 1"
+        row = self.fetchone(query)
+        if row:
+            fact_id = row[0]
+            return fact_id, self.get_fact(fact_id)
+        else:
+            return None, None
+
 
     #tags, here we come!
     def get_tags(self, only_autocomplete = False):
@@ -355,6 +367,7 @@ class Storage():
         fact = self._create_facts(rows)[0]
         logger.info("got fact {}".format(fact))
         return fact
+
 
     def _create_facts(self, fact_dicts):
         """Create Fact instances, moving all tags to an array"""

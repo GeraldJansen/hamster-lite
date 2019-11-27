@@ -37,20 +37,6 @@ import hamster_lite.storage as db
 logger = default_logger(__file__)
 
 
-def word_wrap(line, max_len):
-    """primitive word wrapper"""
-    lines = []
-    cur_line, cur_len = "", 0
-    for word in line.split():
-        if len("%s %s" % (cur_line, word)) < max_len:
-            cur_line = ("%s %s" % (cur_line, word)).strip()
-        else:
-            if cur_line:
-                lines.append(cur_line)
-            cur_line = word
-    if cur_line:
-        lines.append(cur_line)
-    return lines
 
 
 def fact_dict(fact_data, with_date):
@@ -101,27 +87,11 @@ class HamsterClient(object):
         self.storage = db.Storage()
 
 
-    def _launch_window(self, window_name):
-        print("Running in devel mode")
-        from gi.repository import Gtk as gtk
-        from hamster_lite.lib.runtime import dialogs
-        getattr(dialogs, window_name).show()
-        gtk.main()
-
     def overview(self, *args):
-        self._launch_window("overview")
+        from hamster_lite.main import HamsterLite
+        app = HamsterLite()
+        app.run()
 
-    def about(self, *args):
-        self._launch_window("about")
-
-    def prefs(self, *args):
-        self._launch_window("prefs")
-
-    def add(self, *args):
-        self._launch_window("edit")
-
-    def toggle(self):
-        self.storage.toggle()
 
     def track(self, *args):
         """same as start"""
@@ -248,7 +218,7 @@ class HamsterClient(object):
             print(fact_line.format(**pretty_fact))
 
             if pretty_fact['description']:
-                for line in word_wrap(pretty_fact['description'], 76):
+                for line in stuff.word_wrap(pretty_fact['description'], 76):
                     print("    {}".format(line))
 
             if pretty_fact['tags']:
@@ -263,7 +233,7 @@ class HamsterClient(object):
             cats.append("{}: {}".format(cat, stuff.format_duration(duration)))
             total_duration += duration
 
-        for line in word_wrap(", ".join(cats), 80):
+        for line in stuff.word_wrap(", ".join(cats), 80):
             print(line)
         print("Total: ", stuff.format_duration(total_duration))
 

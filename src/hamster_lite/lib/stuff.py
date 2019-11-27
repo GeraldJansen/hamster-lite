@@ -289,3 +289,19 @@ def escape_pango(text):
     text = text.replace("<", "&lt;")
     text = text.replace(">", "&gt;")
     return text
+
+
+def word_wrap(line, max_len):
+    """primitive word wrapper"""
+    lines = []
+    cur_line, cur_len = "", 0
+    for word in line.split():
+        if len("%s %s" % (cur_line, word)) < max_len:
+            cur_line = ("%s %s" % (cur_line, word)).strip()
+        else:
+            if cur_line:
+                lines.append(cur_line)
+            cur_line = word
+    if cur_line:
+        lines.append(cur_line)
+    return lines
