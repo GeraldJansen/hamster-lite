@@ -42,7 +42,6 @@ class ConfStore(Singleton):
         'stop_on_shutdown': False,    # Should hamster stop tracking on shutdown
         'notify_interval': 27,        # Remind current activity every X minutes
         'day_start_minutes' : 5 * 60 + 30,  # Virtual day start (5:30AM)
-        'activities_source': "",      # Source of TODO items ("", "evo", "gtg")
         'last_report_folder': "~",    # Where the last report was saved
         'escape_quits_main': True,    # Allow to quit Hamster on Escape key
     }
@@ -74,7 +73,7 @@ class ConfStore(Singleton):
         # - later update config only on external file change
         self._load_config()
 
-        if key not in self.config:
+        if key not in self.DEFAULTS:
             logger.warn("Unknown config key: %s" % key)
             return None
         else:
