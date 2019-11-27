@@ -25,8 +25,6 @@ def configure(conf):
     conf.env.GETTEXT_PACKAGE = "hamster-lite"
     conf.env.PACKAGE = "hamster-lite"
 
-    conf.recurse("help")
-
 
 def options(opt):
 
@@ -56,7 +54,7 @@ def build(bld):
         install_path="${PYTHONDIR}/hamster_lite"
         )
 
-    bld.recurse("po data help")
+    bld.recurse("po data")
 
 
     def update_icon_cache(ctx):

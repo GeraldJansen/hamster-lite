@@ -590,16 +590,13 @@ class Overview(gtk.ApplicationWindow):
         return True
 
     def on_help_clicked(self, menu):
-        uri = "help:hamster-time-tracker"
+        uri = "https://geraldjansen.github.io/hamster-doc"
         try:
             gtk.show_uri(None, uri, gdk.CURRENT_TIME)
         except gi.repository.GLib.Error:
-            msg = sys.exc_info()[1].args[0]
             dialog = gtk.MessageDialog(self, 0, gtk.MessageType.ERROR,
                                        gtk.ButtonsType.CLOSE,
                                        _("Failed to open {}").format(uri))
-            fmt = _('Error: "{}" - is a help browser installed on this computer?')
-            dialog.format_secondary_text(fmt.format(msg))
             dialog.run()
             dialog.destroy()
 
