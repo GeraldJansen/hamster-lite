@@ -1,0 +1,5 @@
+[flake8]
+# E501 line too long
+# E303 too many blank lines
+ignore = E303,E501
+exclude = .git,__pycache__,build
