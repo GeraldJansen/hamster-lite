@@ -1,17 +1,4 @@
-======================
-Hamster-lite Changelog
-======================
-
-Version 0.2.0 WIP
-=================
-* Switched to Gtk.Application with overview as the MainWindow and
-  others as modal dialogs (blocking the main window)
-* Removed help pages and added link to online documentation instead
-* Restored About dialog
-* Added preference setting 'escape_quits_main' (config file only)
-* Removed (unused) integration code for task list (GTG, etc.)
-
-
+=============
 Version 0.1.0
 =============
 

@@ -1935,10 +1935,9 @@ class Scene(Parent, gtk.DrawingArea):
              scene.animate(some_sprite, x = 50, y = 100)
         """
         if not self.tweener: # here we complain
-            pass #raise Exception("pytweener was not found. Include it to enable animations")
-            tween = None
-        else:
-            tween = self.tweener.add_tween(sprite,
+            raise Exception("pytweener was not found. Include it to enable animations")
+
+        tween = self.tweener.add_tween(sprite,
                                        duration=duration,
                                        easing=easing,
                                        on_complete=on_complete,
@@ -1955,8 +1954,7 @@ class Scene(Parent, gtk.DrawingArea):
             sprites = [sprites]
 
         for sprite in sprites:
-            if self.tweener:
-                self.tweener.kill_tweens(sprite)
+            self.tweener.kill_tweens(sprite)
 
 
     def redraw(self):
