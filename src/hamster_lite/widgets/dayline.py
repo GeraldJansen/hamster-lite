@@ -24,7 +24,7 @@ from gi.repository import Gtk as gtk
 from gi.repository import GObject as gobject
 from gi.repository import PangoCairo as pangocairo
 
-from hamster_lite.lib import stuff, graphics, pytweener
+from hamster_lite.lib import stuff, graphics #, pytweener
 from hamster_lite.lib.configuration import conf
 
 
