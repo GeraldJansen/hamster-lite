@@ -89,7 +89,6 @@ class HeaderBar(gtk.HeaderBar):
         self.add_button.set_tooltip_markup(_("Add activity (Ctrl-+)"))
         self.pack_end(self.add_button)
 
-
         self.system_menu = gtk.Menu()
         self.system_button.set_popup(self.system_menu)
         self.menu_export = gtk.MenuItem(label=_("Export..."))
@@ -101,7 +100,6 @@ class HeaderBar(gtk.HeaderBar):
         self.menu_about = gtk.MenuItem(label=_("About"))
         self.system_menu.append(self.menu_about)
         self.system_menu.show_all()
-
 
         self.time_back.connect("clicked", self.on_time_back_click)
         self.time_forth.connect("clicked", self.on_time_forth_click)
@@ -496,10 +494,13 @@ class Overview(gtk.ApplicationWindow):
         elif event.keyval in (gdk.KEY_Up, gdk.KEY_Down,
                               gdk.KEY_Home, gdk.KEY_End,
                               gdk.KEY_Page_Up, gdk.KEY_Page_Down,
-                              gdk.KEY_Return, gdk.KEY_Delete):
+                              gdk.KEY_Delete):
             # These keys should work even when fact_tree does not have focus
             self.fact_tree.on_key_press(self, event)
             return True  # stop event propagation
+        elif event.keyval == gdk.KEY_Return:
+            self.start_new_fact(clone_selected=True, fallback=False)
+            return True
         elif event.keyval == gdk.KEY_Left:
             self.header_bar.time_back.emit("clicked")
             return True
@@ -515,6 +516,9 @@ class Overview(gtk.ApplicationWindow):
             # the ctrl+things
             if event.keyval == gdk.KEY_f:
                 self.header_bar.search_button.set_active(True)
+            if event.keyval in (gdk.KEY_e, gdk.KEY_Return):
+                self.fact_tree.on_key_press(self, event)
+                return True
             elif event.keyval == gdk.KEY_n:
                 self.start_new_fact(clone_selected=False)
             elif event.keyval == gdk.KEY_r:
