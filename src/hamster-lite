@@ -32,11 +32,11 @@ import datetime as dt
 from hamster_lite import reports
 from hamster_lite import logger as hamster_logger
 from hamster_lite.lib import default_logger, Fact, stuff, DATE_FMT
+from hamster_lite.lib.runtime import dialogs
+from hamster_lite.main import HamsterLite
 import hamster_lite.storage as db
 
 logger = default_logger(__file__)
-
-
 
 
 def fact_dict(fact_data, with_date):
@@ -86,17 +86,23 @@ class HamsterClient(object):
     def __init__(self):
         self.storage = db.Storage()
 
-
     def overview(self, *args):
-        from hamster_lite.main import HamsterLite
         app = HamsterLite()
         app.run()
 
+    def prefs(self, *args):
+        from gi.repository import Gtk as gtk
+        dialogs.prefs.show()
+        gtk.main()
+
+    def add(self, *args):
+        from gi.repository import Gtk as gtk
+        dialogs.edit.show()
+        gtk.main()
 
     def track(self, *args):
         """same as start"""
         self.start(*args)
-
 
     def start(self, *args):
         '''Start a new activity.'''
@@ -110,11 +116,9 @@ class HamsterClient(object):
 
         self.storage.add_fact(fact)
 
-
     def stop(self, *args):
         '''Stop tracking the current activity.'''
         self.storage.stop_tracking()
-
 
     def export(self, *args):
         args = args or ['html']
@@ -123,7 +127,6 @@ class HamsterClient(object):
         start_date, end_date = parse_dates(args)
         facts = self.storage.get_facts(start_date, end_date)
         writer = reports.simple(facts, start_date, end_date, export_format)
-
 
     def _activities(self, search=""):
         '''Print the names of all the activities.'''
@@ -137,7 +140,6 @@ class HamsterClient(object):
                 print(activity['name'])
                 if activity['category']:
                     print("{}@{}".format(activity['name'], activity['category']))
-
 
     def activities(self, *args):
         '''Print the names of all the activities.'''
@@ -166,7 +168,6 @@ class HamsterClient(object):
         else:
             print((_("No activity")))
 
-
     def search(self, *args):
         """search for activities by name and optionally within a date range"""
         args = args or []
@@ -174,7 +175,6 @@ class HamsterClient(object):
         args = [] if len(args) < 2 else args[1:]
         start_date, end_date = parse_dates(args)
         self._list(start_date, end_date, search)
-
 
     def _list(self, start_date, end_date, search=""):
         """Print a listing of activities"""
@@ -243,7 +243,6 @@ class HamsterClient(object):
         from hamster_lite.lib.runtime import runtime
         print(runtime.version)
 
-
 if __name__ == '__main__':
     from hamster_lite.lib import i18n
     i18n.setup_i18n()
@@ -262,7 +261,7 @@ Actions:
     * activities: List all the activities names, one per line.
     * categories: List all the categories names, one per line.
 
-    * overview / add / prefs / about: launch specific window
+    * overview / add / prefs: launch specific window
 
     * version: Show the hamster-lite version
 Time formats:
