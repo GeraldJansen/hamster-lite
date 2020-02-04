@@ -498,9 +498,6 @@ class Overview(gtk.ApplicationWindow):
             # These keys should work even when fact_tree does not have focus
             self.fact_tree.on_key_press(self, event)
             return True  # stop event propagation
-        elif event.keyval == gdk.KEY_Return:
-            self.start_new_fact(clone_selected=True, fallback=False)
-            return True
         elif event.keyval == gdk.KEY_Left:
             self.header_bar.time_back.emit("clicked")
             return True
@@ -529,6 +526,9 @@ class Overview(gtk.ApplicationWindow):
             elif event.keyval in (gdk.KEY_KP_Add, gdk.KEY_plus):
                 # same as pressing the + icon
                 self.start_new_fact(clone_selected=True, fallback=True)
+        elif event.keyval == gdk.KEY_Return:
+            self.start_new_fact(clone_selected=True, fallback=False)
+            return True
 
         if event.keyval == gdk.KEY_Escape:
             if conf.get('escape_quits_main'):

@@ -380,7 +380,7 @@ class FactTree(graphics.Scene, gtk.Scrollable):
             self.y -= self.height * 0.8
             self.on_scroll()
 
-        elif event.keyval == gdk.KEY_Return:
+        elif event.keyval in (gdk.KEY_e, gdk.KEY_Return):
             if self.current_fact:
                 self.activate_row(self.hover_day, self.current_fact)
 
