@@ -1,7 +1,7 @@
 # Keyboard shortcuts
 
 Hamster can be used very efficiently from the keyboard if desired. You may also
-find it useful to bind either the command `hamster` or `hamster add` to a
+find it useful to bind either the command `hamster-lite` or `hamster-lite add` to a
 keyboard application shortcut using your desktop UI settings.
 
 The following key combinations can be used in the overview window.
@@ -21,18 +21,24 @@ and select the activity.
 be resumed (i.e. its details will be cloned, aside from the start time). Same as
 the `+` button in the action bar.
 
-`Ctrl`+`N` or `Ctrl`+`R`: Specifically create a New activity from scratch or
-Resume an existing selected activity.
+`Enter` or `Ctrl`+`R`: Resume an existing selected activity. 
+`Enter` is the same as `Return`.
+
+`Ctrl`+`N`: Create a New activity from scratch.
+
+`Ctrl`+`Enter` or `Ctrl`+`E`: Edit/Update the selected activity if any. 
+Same as double click.
 
 `Ctrl`+`Space`: Stop tracking the ongoing activity, if any. Same as the stop
 button in the action bar.
-
-`Return`: Edit/update the selected activity if any. Same as double click.
 
 `Delete`: Delete the selected activity if any.
 
 
 <hr>
 
-*More `Ctrl` combinations*: The keys above without `Ctrl` can also be used in
-combination with `Ctrl`, for example `Ctrl`+`Left`.
+*More `Ctrl` combinations*: Most keys above without `Ctrl` can also be used in
+combination with `Ctrl`, for example `Ctrl`+`Left`. The exception is `Enter`.
+
+*Note*: the behaviour of the `Enter`/`Return` keys in hamster-lite differs from
+the main Hamster v2+ application.
