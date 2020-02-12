@@ -1,4 +1,12 @@
 =============
+Version 0.1.2
+=============
+
+* Moved towards Gtk.Application structure.
+* Added docs pages for https://geraldjansen.github.io/hamster-lite/.
+* Tweaked some shortcut keys (notably Enter same as Ctrl-R)
+
+=============
 Version 0.1.0
 =============
 
