@@ -29,10 +29,11 @@ import argparse
 import re
 import datetime as dt
 
+import hamster_lite
 from hamster_lite import reports
 from hamster_lite import logger as hamster_logger
 from hamster_lite.lib import default_logger, Fact, stuff, DATE_FMT
-from hamster_lite.lib.runtime import dialogs
+from hamster_lite.lib.runtime import dialogs, runtime
 from hamster_lite.main import HamsterLite
 import hamster_lite.storage as db
 
@@ -90,19 +91,15 @@ class HamsterClient(object):
         app = HamsterLite()
         app.run()
 
-    def prefs(self, *args):
-        from gi.repository import Gtk as gtk
-        dialogs.prefs.show()
-        gtk.main()
-
     def add(self, *args):
         from gi.repository import Gtk as gtk
         dialogs.edit.show()
         gtk.main()
 
-    def track(self, *args):
-        """same as start"""
-        self.start(*args)
+    def preferences(self, *args):
+        from gi.repository import Gtk as gtk
+        dialogs.prefs.show()
+        gtk.main()
 
     def start(self, *args):
         '''Start a new activity.'''
@@ -240,8 +237,7 @@ class HamsterClient(object):
         print()
 
     def version(self):
-        from hamster_lite.lib.runtime import runtime
-        print(runtime.version)
+        print(hamster_lite.__version__)
 
 if __name__ == '__main__':
     from hamster_lite.lib import i18n
@@ -250,7 +246,7 @@ if __name__ == '__main__':
     usage = _(
 """
 Actions:
-    * start / track <activity> [start-time] [end-time]: Track an activity
+    * add [activity [[start-time] [end-time]]]: Add an activity
     * stop: Stop tracking current activity.
     * list [start-date [end-date]]: List activities
     * search [terms] [start-date [end-date]]: List activities matching a search
@@ -261,7 +257,7 @@ Actions:
     * activities: List all the activities names, one per line.
     * categories: List all the categories names, one per line.
 
-    * overview / add / prefs: launch specific window
+    * overview / add / preferences: launch specific window
 
     * version: Show the hamster-lite version
 Time formats:
@@ -306,8 +302,14 @@ Example usage:
     # hamster_logger for the rest
     hamster_logger.setLevel(args.log_level)
 
-    command = args.action
-    if hasattr(hamster_client, command):
-        getattr(hamster_client, command)(*args.action_args)
+    if (args.action == 'add' and  args.action_args) or args.action == 'track':
+        action = "start"                # aliases
+    elif args.action == "prefs":        # for backward compatibility
+        action = "preferences"
+    else:
+        action = args.action
+
+    if hasattr(hamster_client, action):
+        getattr(hamster_client, action)(*args.action_args)
     else:
         sys.exit(usage % {'prog': sys.argv[0]})
