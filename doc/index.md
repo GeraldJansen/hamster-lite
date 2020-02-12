@@ -1,6 +1,4 @@
-# Documentation for Hamster Time Tracker
-
-This is a test. (See issue [#416](https://github.com/projecthamster/hamster/issues/416)).
+# Documentation for Hamster-lite Time Tracker
 
 ## User help pages
 - [Backup](backup.md) :: how to back up the activity database
@@ -10,10 +8,3 @@ This is a test. (See issue [#416](https://github.com/projecthamster/hamster/issu
 - [Report and export](reports.md) :: get data out of Time Tracker
 - [Splitting activities](merge.md) :: merging and splitting activities (automatic conflict solving)
 - [Statistics](statistics.md) :: how to find the detailed totals.
-
-## Developer notes
-See the Hamster [README](https://github.com/projecthamster/hamster/blob/master/README.md) and
-the [How to contribute](https://github.com/projecthamster/hamster/wiki/How-to-contribute) wiki page.
-
-## A bit of history
-- none yet
