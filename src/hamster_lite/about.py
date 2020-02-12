@@ -23,9 +23,9 @@
 
 
 from os.path import join
-from hamster_lite.lib.runtime import runtime
 from gi.repository import Gtk as gtk
 from gi.repository import Gdk as gdk
+import hamster_lite
 
 class About(gtk.AboutDialog):
     def __init__(self, parent=None):
@@ -33,9 +33,9 @@ class About(gtk.AboutDialog):
         self.parent = parent
         infos = {
             "program-name" : _("Hamster-lite Time Tracker"),
-            "version" : runtime.version,
+            "version" : hamster_lite.__version__,
             "comments" : _("Your personal time keeping tool"),
-            "copyright" : _("Copyright © 2019 Gerald Jansen"),
+            "copyright" : _("Copyright © 2019-2020 Gerald Jansen"),
             "website" : "https://github.com/GeraldJansen/hamster-lite/wiki/",
             "website-label" : _("Hamster-lite Github Wiki"),
             "title": _("About Hamster-lite"),

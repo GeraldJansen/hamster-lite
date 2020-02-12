@@ -27,6 +27,7 @@ import datetime as dt
 from gi.repository import GObject as gobject
 from gi.repository import Gtk as gtk
 from xdg.BaseDirectory import xdg_data_home, xdg_config_home
+import hamster_lite
 import hamster_lite.storage as db
 
 
@@ -94,22 +95,18 @@ class RuntimeStore(Singleton):
     storage = None
 
     def __init__(self):
-        try:
-            from hamster_lite import defs
-            self.data_dir = os.path.join(defs.DATA_DIR, "hamster-lite")
-            self.version = defs.VERSION
-        except:
-            # if defs is not there, we are running from sources
+        if hamster_lite.installed:
+            self.data_dir = os.path.join(hamster_lite.defs.DATA_DIR,
+                                         "hamster-lite")
+        else:
+            # we are running from sources
             module_dir = os.path.dirname(os.path.realpath(__file__))
             self.data_dir = os.path.join(module_dir, '..', '..', '..', 'data')
-            from subprocess import getstatusoutput
-            rc, output = getstatusoutput("git describe --tags --always --dirty=+")
-            self.version = "" if rc else output + " (uninstalled)"
 
         self.data_dir = os.path.realpath(self.data_dir)
-        self.storage = db.Storage()
         self.home_data_dir = os.path.realpath(
             os.path.join(xdg_data_home, "hamster-lite"))
+        self.storage = db.Storage()
 
 
 runtime = RuntimeStore()
