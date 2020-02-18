@@ -614,6 +614,14 @@ class Overview(gtk.ApplicationWindow):
         dialogs.prefs.show(self)
 
     def on_export_clicked(self, menu):
+        if not self.facts:
+            msg = _("No activities to report in this time period.")
+            dialog = gtk.MessageDialog(self, 0, gtk.MessageType.ERROR,
+                                       gtk.ButtonsType.CLOSE, msg)
+            dialog.run()
+            dialog.destroy()
+            return
+
         if self.report_chooser:
             self.report_chooser.present()
             return
@@ -625,7 +633,7 @@ class Overview(gtk.ApplicationWindow):
             reports.simple(self.facts, start, end, format, path)
 
             if format == ("html"):
-                webbrowser.open_new("file://%s" % path)
+                webbrowser.open("file://%s" % path)
             else:
                 try:
                     gtk.show_uri(None, "file://%s" % path, gdk.CURRENT_TIME)
