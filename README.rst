@@ -27,7 +27,7 @@ alternative extension -
 - is compatible and can be adapted by substituting ``hamster`` by
 ``hamster-lite``). Extensibility of the backend storage to anything
 other than the sqlite3 DB has also been removed. Configuration data is
-stored in a json file (i.e. no gconf/dconf dependency).
+stored in a json file (i.e. no gconf/gsettings/dconf dependency).
 
 Installation
 ------------
@@ -51,8 +51,8 @@ Other
 
 Current (late 2019) dependencies for
 `Hamster <https://github.com/projecthamster/hamster/blob/master/README.md>`__
-should work, keeping in mind that the dbus and gconf dependencies are no
-longer needed.
+should work, keeping in mind that the dbus and gconf or gsettings/dconf dependencies are not 
+needed.
 
 Trying the development version
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
