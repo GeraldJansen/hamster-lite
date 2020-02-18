@@ -594,7 +594,7 @@ class Overview(gtk.ApplicationWindow):
         return True
 
     def on_help_clicked(self, menu):
-        uri = "https://geraldjansen.github.io/hamster-doc"
+        uri = "https://geraldjansen.github.io/hamster-lite"
         try:
             gtk.show_uri(None, uri, gdk.CURRENT_TIME)
         except gi.repository.GLib.Error:
