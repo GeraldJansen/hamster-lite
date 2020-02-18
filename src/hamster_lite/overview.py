@@ -596,7 +596,7 @@ class Overview(gtk.ApplicationWindow):
     def on_help_clicked(self, menu):
         uri = "https://geraldjansen.github.io/hamster-lite"
         try:
-            gtk.show_uri(None, uri, gdk.CURRENT_TIME)
+            webbrowser.open(uri)
         except gi.repository.GLib.Error:
             dialog = gtk.MessageDialog(self, 0, gtk.MessageType.ERROR,
                                        gtk.ButtonsType.CLOSE,
