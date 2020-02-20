@@ -38,9 +38,6 @@ class ConfStore(Singleton):
     Settings implementation which stores settings as json string in hamster.db
     """
     DEFAULTS = {
-        'enable_timeout': False,      # Whether to stop tracking on idle
-        'stop_on_shutdown': False,    # Should hamster stop tracking on shutdown
-        'notify_interval': 27,        # Remind current activity every X minutes
         'day_start_minutes' : 5 * 60 + 30,  # Virtual day start (5:30AM)
         'last_report_folder': "~",    # Where the last report was saved
         'escape_quits_main': True,    # Allow to quit Hamster on Escape key

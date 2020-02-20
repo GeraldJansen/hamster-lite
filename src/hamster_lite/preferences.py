@@ -181,10 +181,6 @@ class PreferencesEditor(Controller):
 
 
     def load_config(self, *args):
-        self.get_widget("shutdown_track").set_active(conf.get("stop_on_shutdown"))
-        self.get_widget("idle_track").set_active(conf.get("enable_timeout"))
-        self.get_widget("notify_interval").set_value(conf.get("notify_interval"))
-
         self.day_start.time = conf.day_start
 
         self.tags = [tag["name"] for tag in runtime.storage.get_tags(only_autocomplete=True)]
