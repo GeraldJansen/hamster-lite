@@ -527,7 +527,13 @@ class Overview(gtk.ApplicationWindow):
                 # same as pressing the + icon
                 self.start_new_fact(clone_selected=True, fallback=True)
         elif event.keyval == gdk.KEY_Return:
-            self.start_new_fact(clone_selected=True, fallback=False)
+            # resume selected fact directly, without editing
+            base_fact = self.fact_tree.current_fact
+            if base_fact:
+                self._app.db.add_fact(
+                    base_fact.copy(start_time=stuff.hamster_now(),
+                                   end_time=None))
+            # self.start_new_fact(clone_selected=True, fallback=False)
             return True
 
         if event.keyval == gdk.KEY_Escape:
