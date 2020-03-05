@@ -29,6 +29,7 @@ import datetime as dt
 import gi
 gi.require_version('Gtk', '3.0')  # NOQA
 from gi.repository import Gtk, GObject
+from gi.repository import GLib as glib
 
 from hamster_lite import reports
 from hamster_lite import logger as hamster_logger
@@ -70,7 +71,8 @@ class HamsterLite(Gtk.Application):
 
     def _startup(self, app):
         """Triggered right at startup."""
-        print(_('Hamster-lite started.'))  # NOQA
+        print(_("Hamster-lite started."))  # NOQA
+        glib.set_application_name("Hamster-lite")
         self.db = storage.Storage()
 
     def _activate(self, app):
