@@ -524,9 +524,8 @@ class FactTree(graphics.Scene, gtk.Scrollable):
                 height += fact.height
 
             height += self.day_padding
-
             if not facts:
-                height = 10
+                height = 0
             else:
                 height = max(height, 60)
 
@@ -616,17 +615,6 @@ class FactTree(graphics.Scene, gtk.Scrollable):
 
             if not rec['facts']:
                 "do a collapsy thing"
-                g.rectangle(0, 0, self.width, 10)
-                g.clip()
-                g.rectangle(0, 0, self.width, 10)
-                none_bg_color = self.colors.mix(colors["normal_bg"], colors["normal"], 0.75)
-                g.fill(none_bg_color)
-
-                # line, useful to separate consecutive days with no activity
-                g.move_to(0, 0)
-                g.line_to(self.width, 0)
-                none_stroke_color = self.colors.mix(colors["normal_bg"], colors["normal"], 0.25)
-                g.stroke(none_stroke_color)
                 g.restore_context()
                 continue
 
