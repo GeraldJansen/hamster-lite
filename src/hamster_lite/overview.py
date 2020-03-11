@@ -425,7 +425,7 @@ class Overview(gtk.ApplicationWindow):
 
         self.set_position(gtk.WindowPosition.CENTER)
         self.set_default_icon_name("hamster-lite")
-        self.set_default_size(700, 500)
+        self.set_default_size(400, 400)
 
         self.header_bar = HeaderBar()
         self.set_titlebar(self.header_bar)
