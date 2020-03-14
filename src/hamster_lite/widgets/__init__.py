@@ -29,7 +29,6 @@ from hamster_lite.widgets.activityentry import (
     CmdLineEntry,
     )
 from hamster_lite.widgets.timeinput import TimeInput
-from hamster_lite.widgets.dayline import DayLine
 from hamster_lite.widgets.tags import Tag, TagBox, TagsEntry
 from hamster_lite.widgets.reportchooserdialog import ReportChooserDialog
 from hamster_lite.widgets.facttree import FactTree
