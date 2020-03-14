@@ -56,9 +56,6 @@ class CustomFactController(gobject.GObject):
         self.cmdline.connect("focus_in_event", self.on_cmdline_focus_in_event)
         self.cmdline.connect("focus_out_event", self.on_cmdline_focus_out_event)
 
-        self.dayline = widgets.DayLine()
-        self._gui.get_object("day_preview").add(self.dayline)
-
         self.description_box = self.get_widget('description')
         self.description_buffer = self.description_box.get_buffer()
 
@@ -125,28 +122,9 @@ class CustomFactController(gobject.GObject):
         self.validate_fields()
         self.window.show_all()
 
-    def on_prev_day_clicked(self, button):
-        self.increment_date(-1)
-
-    def on_next_day_clicked(self, button):
-        self.increment_date(+1)
-
-    def draw_preview(self, start_time, end_time=None):
-        day_facts = runtime.storage.get_facts(self.date)
-        self.dayline.plot(self.date, day_facts, start_time, end_time)
-
     def get_widget(self, name):
         """ skip one variable (huh) """
         return self._gui.get_object(name)
-
-    def increment_date(self, days):
-        delta = dt.timedelta(days=days)
-        self.date += delta
-        if self.fact.start_time:
-            self.fact.start_time += delta
-        if self.fact.end_time:
-            self.fact.end_time += delta
-        self.update_fields()
 
     def show(self):
         self.window.show()
@@ -317,15 +295,11 @@ class CustomFactController(gobject.GObject):
         fact = self.fact
 
         now = hamster_now()
-        self.get_widget("button-next-day").set_sensitive(self.date < now.date())
 
         if self.date == now.date():
             default_dt = now
         else:
             default_dt = dt.datetime.combine(self.date, now.time())
-
-        self.draw_preview(fact.start_time or default_dt,
-                          fact.end_time or default_dt)
 
         if fact.start_time is None:
             self.update_status(status="wrong", markup="Missing start time")
