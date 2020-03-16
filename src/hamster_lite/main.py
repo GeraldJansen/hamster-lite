@@ -41,9 +41,6 @@ i18n.setup_i18n()
 
 logger = default_logger(__file__)
 
-APP_NAME = 'Hamster-lite'
-DEFAULT_WINDOW_SIZE = (500, 700)
-
 
 class SignalHandler(GObject.GObject):
     """Simple signaling class to provide custom signal registration."""
