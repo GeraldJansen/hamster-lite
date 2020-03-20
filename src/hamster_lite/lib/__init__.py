@@ -10,6 +10,8 @@ from copy import deepcopy
 from hamster_lite.lib.stuff import (
     datetime_to_hamsterday,
     hamsterday_time_to_datetime,
+    format_duration,
+    escape_pango,
     hamster_now,
 )
 

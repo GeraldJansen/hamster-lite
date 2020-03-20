@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
+# Portions copyright (C) 2019-2020 Gerald Jansen <gjansen at ownmail.net>
 # Copyright (C) 2014 Toms Bauģis <toms.baugis at gmail.com>
-# Copyright (C) 2019-2020 Gerald Jansen <gjansen at ownmail.net>
 
-# This file is part of Project Hamster.
+# This file is part of Hamster-lite.
 
 # Project Hamster is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,31 +16,21 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with Project Hamster.  If not, see <http://www.gnu.org/licenses/>.
+# along with Hamster-lite.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
-import bisect
 import datetime as dt
-import itertools
 import webbrowser
 
 from collections import defaultdict
-from math import ceil
 
 from gi.repository import Gio as gio
 from gi.repository import Gtk as gtk
 from gi.repository import Gdk as gdk
 from gi.repository import GObject as gobject
-
-
-import gi
-gi.require_version('PangoCairo', '1.0')
-from gi.repository import PangoCairo as pangocairo
 from gi.repository import Pango as pango
-import cairo
 
 from hamster_lite import widgets, reports
-from hamster_lite.lib import graphics, layout, stuff
+from hamster_lite.lib import stuff
 from hamster_lite.lib.runtime import dialogs
 from hamster_lite.lib.configuration import conf
 from hamster_lite.widgets.dates import RangePick
@@ -166,7 +156,7 @@ class Overview(gtk.ApplicationWindow):
 
         self.set_position(gtk.WindowPosition.CENTER)
         self.set_default_icon_name("hamster-lite")
-        self.set_default_size(400, 400)
+        self.set_default_size(600, 400)
 
         self.header_bar = HeaderBar()
         self.set_titlebar(self.header_bar)
@@ -175,7 +165,6 @@ class Overview(gtk.ApplicationWindow):
         self.add(main)
 
         self.report_chooser = None
-
 
         self.search_box = gtk.Revealer()
 
@@ -190,15 +179,8 @@ class Overview(gtk.ApplicationWindow):
         space.pack_start(self.filter_entry, True, True, 0)
         main.pack_start(self.search_box, False, True, 0)
 
-
-        window = gtk.ScrolledWindow()
-        window.set_policy(gtk.PolicyType.NEVER, gtk.PolicyType.AUTOMATIC)
         self.fact_tree = FactTree()
-        self.fact_tree.connect("on-activate-row", self.on_row_activated)
-        self.fact_tree.connect("on-delete-called", self.on_row_delete_called)
-
-        window.add(self.fact_tree)
-        main.pack_start(window, True, True, 1)
+        main.pack_start(self.fact_tree, True, True, 1)
 
         self.totals = Totals()
         main.pack_start(self.totals, False, False, 1)
@@ -225,7 +207,6 @@ class Overview(gtk.ApplicationWindow):
         gobject.timeout_add_seconds(60, self.on_timeout)
         self.show_all()
 
-
     def on_key_press(self, window, event):
         if self.filter_entry.has_focus():
             if event.keyval == gdk.KEY_Escape:
@@ -234,11 +215,11 @@ class Overview(gtk.ApplicationWindow):
                 return True
         elif event.keyval in (gdk.KEY_Up, gdk.KEY_Down,
                               gdk.KEY_Home, gdk.KEY_End,
-                              gdk.KEY_Page_Up, gdk.KEY_Page_Down,
-                              gdk.KEY_Delete):
-            # These keys should work even when fact_tree does not have focus
-            self.fact_tree.on_key_press(self, event)
-            return True  # stop event propagation
+                              gdk.KEY_Page_Up, gdk.KEY_Page_Down):
+            # TODO: fact_tree need to get focus ....
+            # self.fact_tree.on_key_press(event)
+            # return True  # stop event propagation
+            pass
         elif event.keyval == gdk.KEY_Left:
             self.header_bar.time_back.emit("clicked")
             return True
@@ -252,21 +233,26 @@ class Overview(gtk.ApplicationWindow):
 
         if event.state & gdk.ModifierType.CONTROL_MASK:
             # the ctrl+things
+            if event.keyval in (gdk.KEY_e, gdk.KEY_Return):
+                self. edit_selected_fact()
+                return True
             if event.keyval == gdk.KEY_f:
                 self.header_bar.search_button.set_active(True)
-            if event.keyval in (gdk.KEY_e, gdk.KEY_Return):
-                self.fact_tree.on_key_press(self, event)
-                return True
+            elif event.keyval == gdk.KEY_space:
+                self._app.db.stop_tracking()
             elif event.keyval == gdk.KEY_n:
                 self.start_new_fact(clone_selected=False)
             elif event.keyval == gdk.KEY_r:
                 # Resume/run; clear separation between Ctrl-R and Ctrl-N
                 self.start_new_fact(clone_selected=True, fallback=False)
-            elif event.keyval == gdk.KEY_space:
-                self._app.db.stop_tracking()
             elif event.keyval in (gdk.KEY_KP_Add, gdk.KEY_plus):
                 # same as pressing the + icon
                 self.start_new_fact(clone_selected=True, fallback=True)
+
+        elif event.keyval == gdk.KEY_Delete:
+            # delete fact uncerimoniously
+            self.delete_selected_fact()
+            return True
         elif event.keyval == gdk.KEY_Return:
             # resume selected fact directly, without editing
             base_fact = self.fact_tree.current_fact
@@ -274,12 +260,23 @@ class Overview(gtk.ApplicationWindow):
                 self._app.db.add_fact(
                     base_fact.copy(start_time=stuff.hamster_now(),
                                    end_time=None))
-            # self.start_new_fact(clone_selected=True, fallback=False)
+                self.find_facts()
             return True
 
         if event.keyval == gdk.KEY_Escape:
             if conf.get('escape_quits_main'):
                 self._app.quit()
+
+    def edit_selected_fact(self):
+        if self.fact_tree.current_fact:
+            fact_id = self.fact_tree.current_fact.id
+            dialogs.edit.show(self, fact_id=fact_id)
+
+    def delete_selected_fact(self):
+        if self.fact_tree.current_fact:
+            fact_id = self.fact_tree.current_fact.id
+            self._app.db.remove_fact(fact_id)
+            self.find_facts()
 
     def find_facts(self):
         start, end = self.header_bar.range_pick.get_range()
@@ -287,7 +284,7 @@ class Overview(gtk.ApplicationWindow):
         search = "" if not search_active else self.filter_entry.get_text()
         search = "%s*" % search if search else "" # search anywhere
         self.facts = self._app.db.get_facts(start, end, search_terms=search)
-        self.fact_tree.set_facts(self.facts)
+        self.fact_tree.update_facts(self.facts)
         self.totals.update_totals(self.facts)
         self.header_bar.stop_button.set_sensitive(
             self.facts and not self.facts[-1].end_time)
@@ -298,11 +295,11 @@ class Overview(gtk.ApplicationWindow):
 
     def on_search_changed(self, entry):
         if entry.get_text():
-            self.filter_entry.set_icon_from_icon_name(gtk.EntryIconPosition.SECONDARY,
-                                                      "edit-clear-symbolic")
+            self.filter_entry.set_icon_from_icon_name(
+                gtk.EntryIconPosition.SECONDARY, "edit-clear-symbolic")
         else:
-            self.filter_entry.set_icon_from_icon_name(gtk.EntryIconPosition.SECONDARY,
-                                                      None)
+            self.filter_entry.set_icon_from_icon_name(
+                gtk.EntryIconPosition.SECONDARY, None)
         self.find_facts()
 
     def on_search_icon_press(self, entry, position, event):
@@ -318,14 +315,6 @@ class Overview(gtk.ApplicationWindow):
 
     def on_stop_clicked(self, button):
         self._app.db.stop_tracking()
-        self.find_facts()
-
-    def on_row_activated(self, tree, day, fact):
-        dialogs.edit.show(self, fact_id=fact.id)
-        self.find_facts()
-
-    def on_row_delete_called(self, tree, fact):
-        self._app.db.remove_fact(fact.id)
         self.find_facts()
 
     def on_search_toggled(self, button):
@@ -350,7 +339,6 @@ class Overview(gtk.ApplicationWindow):
                                        _("Failed to open {}").format(uri))
             dialog.run()
             dialog.destroy()
-
 
     def on_about_clicked(self, menu):
         dialog = About()
@@ -390,13 +378,11 @@ class Overview(gtk.ApplicationWindow):
         def on_report_chooser_closed(widget):
             self.report_chooser = None
 
-
         self.report_chooser = widgets.ReportChooserDialog()
         self.report_chooser.connect("report-chosen", on_report_chosen)
         self.report_chooser.connect("report-chooser-closed",
                                     on_report_chooser_closed)
         self.report_chooser.show(start, end)
-
 
     def start_new_fact(self, clone_selected=True, fallback=True):
         """Start now a new fact.
