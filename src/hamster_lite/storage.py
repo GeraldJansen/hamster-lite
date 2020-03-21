@@ -30,18 +30,24 @@ import itertools
 import sqlite3
 from shutil import copy as copyfile
 import datetime as dt
+from gi.repository import GObject as gobject
 from hamster_lite.lib import Fact
 from hamster_lite.lib.configuration import conf
 from hamster_lite.lib.stuff import hamster_today, hamster_now
 
 
-class Storage():
+class Storage(gobject.GObject):
+
+    __gsignals__ = {"facts-changed": (gobject.SIGNAL_RUN_LAST, None, ())}
+
     con = None  # Connection will be created on demand
 
     def __init__(self, unsorted="", database_dir=None):
         """
         Delayed setup so we don't do everything at the same time (?)
         """
+        gobject.GObject.__init__(self)
+
         self._unsorted = unsorted  # NB. pass in localized name
 
         self.__con = None
@@ -110,6 +116,7 @@ class Storage():
         self._remove_fact(fact_id)
         result = self.add_fact(fact)
         self.end_transaction()
+        self.emit("facts-changed")
         return result
 
     def remove_fact(self, fact_id):
@@ -119,12 +126,14 @@ class Storage():
         if fact:
             self._remove_fact(fact_id)
         self.end_transaction()
+        self.emit("facts-changed")
 
     def stop_tracking(self, end_time=None):
         """Stops tracking the current activity"""
         facts = self.get_todays_facts()
         if facts and not facts[-1].end_time:
             self._touch_fact(facts[-1], end_time or hamster_now())
+        self.emit("facts-changed")
 
     def get_ongoing_fact(self):
         """Get ongoing fact, if any"""
@@ -621,6 +630,7 @@ class Storage():
         self._remove_index([fact_id])
 
         logger.info("fact successfully added, with id #{}".format(fact_id))
+        self.emit("facts-changed")
         return fact_id
 
     def _last_insert_rowid(self):

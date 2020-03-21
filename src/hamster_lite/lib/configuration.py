@@ -35,7 +35,7 @@ class Singleton(object):
 
 class ConfStore(Singleton):
     """
-    Settings implementation which stores settings as json string in hamster.db
+    Settings implementation which stores settings as simple json string
     """
     DEFAULTS = {
         'day_start_minutes' : 5 * 60 + 30,  # Virtual day start (5:30AM)
