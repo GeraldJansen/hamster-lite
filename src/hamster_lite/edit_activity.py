@@ -26,24 +26,24 @@ import datetime as dt
 
 from hamster_lite import widgets
 from hamster_lite.lib.configuration import conf
-from hamster_lite.lib.runtime import runtime, load_ui_file
+from hamster_lite.lib.runtime import runtime, load_ui_file, Controller
 from hamster_lite.lib.stuff import (
     hamsterday_time_to_datetime, hamster_today, hamster_now, escape_pango)
 from hamster_lite.lib import Fact
 
 
-class CustomFactController(gobject.GObject):
-    __gsignals__ = {
-        "on-close": (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
-    }
+class CustomFactController(Controller):
 
-    def __init__(self,  parent=None, fact_id=None, base_fact=None):
-        gobject.GObject.__init__(self)
+    def __init__(self,  parent=None, db=None, fact_id=None, base_fact=None):
+        Controller.__init__(self)
 
         self._gui = load_ui_file("edit_activity.ui")
         self.window = self.get_widget('custom_fact_window')
         self.window.set_size_request(600, 200)
         self.parent = parent
+
+        self.db = db or runtime.storage
+
         # None if creating a new fact, instead of editing one
         self.fact_id = fact_id
 
@@ -81,7 +81,7 @@ class CustomFactController(gobject.GObject):
 
         if fact_id:
             # editing
-            self.fact = runtime.storage.get_fact(fact_id)
+            self.fact = self.db.get_fact(fact_id)
             self.date = self.fact.date
             self.window.set_title(_("Update activity"))
         else:
@@ -333,7 +333,7 @@ class CustomFactController(gobject.GObject):
         return fact
 
     def on_delete_clicked(self, button):
-        runtime.storage.remove_fact(self.fact_id)
+        self.db.remove_fact(self.fact_id)
         self.close_window()
 
     def on_cancel_clicked(self, button):
@@ -344,9 +344,9 @@ class CustomFactController(gobject.GObject):
 
     def on_save_button_clicked(self, button):
         if self.fact_id:
-            runtime.storage.update_fact(self.fact_id, self.fact)
+            self.db.update_fact(self.fact_id, self.fact)
         else:
-            runtime.storage.add_fact(self.fact)
+            self.db.add_fact(self.fact)
         self.close_window()
 
     def on_window_key_pressed(self, tree, event_key):

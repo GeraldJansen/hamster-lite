@@ -108,7 +108,6 @@ class HamsterClient(object):
             return
 
         fact = Fact.parse(' '.join(args))
-        print('new fact:', fact)
         fact.start_time = fact.start_time or stuff.hamster_now()
 
         self.storage.add_fact(fact)

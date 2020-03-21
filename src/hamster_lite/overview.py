@@ -23,7 +23,6 @@ import webbrowser
 
 from collections import defaultdict
 
-from gi.repository import Gio as gio
 from gi.repository import Gtk as gtk
 from gi.repository import Gdk as gdk
 from gi.repository import GObject as gobject
@@ -143,16 +142,9 @@ class Overview(gtk.ApplicationWindow):
         super().__init__(*args, **kwargs)
 
         self._app = app
-        self._app.signal.connect("facts-changed", self.on_facts_changed)
-        self._app.signal.connect("activities-changed", self.on_facts_changed)
-        def on_db_file_changed(monitor, gio_file, event_uri, event):
-            if event == gio.FileMonitorEvent.CHANGES_DONE_HINT:
-                self.find_facts()
-
-        self.__db_file = gio.File.new_for_path(self._app.db.db_path)
-        self.__db_monitor = self.__db_file.monitor_file\
-            (gio.FileMonitorFlags.WATCH_MOUNTS, None)
-        self.__db_monitor.connect("changed", on_db_file_changed)
+        self._app.db.connect("facts-changed", self.on_facts_changed)
+        #self._app.signal.connect("facts-changed", self.on_facts_changed)
+        #self._app.signal.connect("activities-changed", self.on_facts_changed)
 
         self.set_position(gtk.WindowPosition.CENTER)
         self.set_default_icon_name("hamster-lite")
@@ -260,7 +252,6 @@ class Overview(gtk.ApplicationWindow):
                 self._app.db.add_fact(
                     base_fact.copy(start_time=stuff.hamster_now(),
                                    end_time=None))
-                self.find_facts()
             return True
 
         if event.keyval == gdk.KEY_Escape:
@@ -270,13 +261,12 @@ class Overview(gtk.ApplicationWindow):
     def edit_selected_fact(self):
         if self.fact_tree.current_fact:
             fact_id = self.fact_tree.current_fact.id
-            dialogs.edit.show(self, fact_id=fact_id)
+            dialogs.edit.show(self, db=self._app.db, fact_id=fact_id)
 
     def delete_selected_fact(self):
         if self.fact_tree.current_fact:
             fact_id = self.fact_tree.current_fact.id
             self._app.db.remove_fact(fact_id)
-            self.find_facts()
 
     def find_facts(self):
         start, end = self.header_bar.range_pick.get_range()
@@ -311,11 +301,9 @@ class Overview(gtk.ApplicationWindow):
 
     def on_add_clicked(self, button):
         self.start_new_fact(clone_selected=True, fallback=True)
-        self.find_facts()
 
     def on_stop_clicked(self, button):
         self._app.db.stop_tracking()
-        self.find_facts()
 
     def on_search_toggled(self, button):
         active = button.get_active()
@@ -392,7 +380,7 @@ class Overview(gtk.ApplicationWindow):
                          in case of no selected fact.
         """
         if not clone_selected:
-            dialogs.edit.show(self, base_fact=None)
+            dialogs.edit.show(self, db=self._app.db, base_fact=None)
         elif self.fact_tree.current_fact or fallback:
-            dialogs.edit.show(self, base_fact=self.fact_tree.current_fact)
-        self.find_facts()
+            dialogs.edit.show(self, db=self._app.db,
+                              base_fact=self.fact_tree.current_fact)

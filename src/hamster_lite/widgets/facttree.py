@@ -4,7 +4,7 @@
 
 # This file is part of Hamster-lite.
 
-# Project Hamster is free software: you can redistribute it and/or modify
+# Hamster-lite is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with Project Hamster.  If not, see <http://www.gnu.org/licenses/>.
+# along with Hamster-lite.  If not, see <http://www.gnu.org/licenses/>.
 
 from gi.repository import Gtk as gtk
 from gi.repository import Gdk as gdk
@@ -68,7 +68,7 @@ class FactTree(gtk.ScrolledWindow):
         model, treeiter = selection.get_selected()
         if treeiter:
             self.current_fact = self.facts[model[treeiter][-1]]
-            print(f"Fact selected: {str(self.current_fact)}")
+            #log.debug(f"Fact selected: {str(self.current_fact)}")
         else:
             self.current_fact = None
 
@@ -100,6 +100,5 @@ class FactTree(gtk.ScrolledWindow):
             time = format_duration(
                 (fact.end_time or hamster_now()) - fact.start_time)
             self.store.append([date, start_end, activity, time, idx])
-            #print(dir(self.treestore[citer][0]))
         self.treeview.expand_all()
         self.treeview.show()
