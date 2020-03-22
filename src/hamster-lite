@@ -149,9 +149,9 @@ class HamsterClient(object):
             print(category['name'])
 
 
-    def list(self, *times):
+    def list(self, *dates):
         """list facts within a date range"""
-        start_date, end_date = parse_dates(args or [])
+        start_date, end_date = parse_dates(dates or [])
         self._list(start_date, end_date)
 
 
