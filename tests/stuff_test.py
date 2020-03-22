@@ -3,14 +3,13 @@ import sys, os.path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../src"))
 
 import unittest
-from hamster_lite.lib import Fact
-from hamster_lite.lib.stuff import hamster_now
-
+from hamster_lite.lib import (
+    Fact, hamster_now, datetime_to_hamsterday, hamsterday_time_to_datetime
+    )
 
 class TestActivityInputParsing(unittest.TestCase):
     def test_datetime_to_hamsterday(self):
         import datetime as dt
-        from hamster.lib import datetime_to_hamsterday
         date_time = dt.datetime(2018, 8, 13, 23, 10)  # 2018-08-13 23:10
         expected = dt.date(2018, 8, 13)
         self.assertEqual(datetime_to_hamsterday(date_time), expected)
@@ -20,7 +19,6 @@ class TestActivityInputParsing(unittest.TestCase):
 
     def test_hamsterday_time_to_datetime(self):
         import datetime as dt
-        from hamster.lib import hamsterday_time_to_datetime
         hamsterday = dt.date(2018, 8, 13)
         time = dt.time(23, 10)
         expected = dt.datetime(2018, 8, 13, 23, 10)  # 2018-08-13 23:10
