@@ -17,7 +17,7 @@ xdg_data_home).
 
 User documentation for this version remains largely the same as that of
 the main Hamster application. A static copy is available online
-`here <https://geraldjansen.github.io/hamster-doc/>`__.
+`here <https://geraldjansen.github.io/hamster-lite/>`__.
 
 Some functionality has been removed in hamster-lite in order to achieve
 some code simplification. D-bus support has been removed, meaning this
