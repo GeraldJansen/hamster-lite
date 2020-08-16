@@ -32,7 +32,7 @@ import datetime as dt
 import hamster_lite
 from hamster_lite import reports
 from hamster_lite import logger as hamster_logger
-from hamster_lite.lib import default_logger, Fact, stuff, DATE_FMT
+from hamster_lite.lib import default_logger, Fact, stuff, DATE_FMT, word_wrap
 from hamster_lite.lib.runtime import dialogs, runtime
 from hamster_lite.main import HamsterLite
 import hamster_lite.storage as db
@@ -214,7 +214,7 @@ class HamsterClient(object):
             print(fact_line.format(**pretty_fact))
 
             if pretty_fact['description']:
-                for line in stuff.word_wrap(pretty_fact['description'], 76):
+                for line in word_wrap(pretty_fact['description'], 76):
                     print("    {}".format(line))
 
             if pretty_fact['tags']:
@@ -229,7 +229,7 @@ class HamsterClient(object):
             cats.append("{}: {}".format(cat, stuff.format_duration(duration)))
             total_duration += duration
 
-        for line in stuff.word_wrap(", ".join(cats), 80):
+        for line in word_wrap(", ".join(cats), 80):
             print(line)
         print("Total: ", stuff.format_duration(total_duration))
 
