@@ -202,18 +202,22 @@ class CustomFactController(Controller):
 
     def on_start_date_changed(self, widget):
         if not self.master_is_cmdline:
-            if self.fact.start_time:
-                previous_date = self.fact.start_time.date()
-                new_date = self.start_date.date
-                delta = new_date - previous_date
-                self.fact.start_time += delta
-                if self.fact.end_time:
-                    # preserve fact duration
-                    self.fact.end_time += delta
-                    self.end_date.date = self.fact.end_time
-            self.date = self.fact.date or hamster_today()
-            self.validate_fields()
-            self.update_cmdline()
+            new_date = self.start_date.date
+            self.change_start_date(new_date)
+
+    def change_start_date(self, new_date):
+        if self.fact.start_time:
+            previous_date = self.fact.start_time.date()
+            new_date = self.start_date.date
+            delta = new_date - previous_date
+            self.fact.start_time += delta
+            if self.fact.end_time:
+                # preserve fact duration
+                self.fact.end_time += delta
+                self.end_date.date = self.fact.end_time
+        self.date = self.fact.date or hamster_today()
+        self.validate_fields()
+        self.update_cmdline()
 
     def on_start_date_expander_activated(self, widget):
         # state has not changed yet, toggle also end_date calendar visibility
@@ -261,8 +265,8 @@ class CustomFactController(Controller):
         self.start_time.time = self.fact.start_time
         self.end_time.time = self.fact.end_time
         self.end_time.set_start_time(self.fact.start_time)
-        self.start_date.date = self.fact.start_time
-        self.end_date.date = self.fact.end_time
+        self.start_date.date = self.fact.date or self.date
+        self.end_date.date = self.fact.date or self.date
         self.activity_entry.set_text(self.fact.activity)
         self.category_entry.set_text(self.fact.category)
         self.description_buffer.set_text(self.fact.description)
