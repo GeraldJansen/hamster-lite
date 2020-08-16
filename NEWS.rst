@@ -1,7 +1,8 @@
 =============
 Version 0.1.3
 =============
-* Fixed bug in date adustment from edit window.
+* Fixed bug in date adustment from edit window (#16).
+* Improved formatting of activities in overview (#18).
 
 =============
 Version 0.1.2
