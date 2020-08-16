@@ -22,6 +22,7 @@ from gi.repository import Gdk as gdk
 from gi.repository import GObject as gobject
 
 from hamster_lite.lib import hamster_now, format_duration, escape_pango
+from hamster_lite.lib import word_wrap
 
 
 def small(text):
@@ -94,9 +95,11 @@ class FactTree(gtk.ScrolledWindow):
             if fact.category:
                 activity += ' - ' + escape_pango(fact.category)
             if fact.description:
-                activity += '\n' + small(fact.description)
+                activity += ', ' + fact.description
+            activity = '\n'.join(word_wrap(activity, 72))
             if fact.tags:
-                activity += '\n' + small('Tags: ' + ', '.join(fact.tags))
+                activity += ' ' + ', '.join(
+                    ['#' + tag for tag in fact.tags])
             time = format_duration(
                 (fact.end_time or hamster_now()) - fact.start_time)
             self.store.append([date, start_end, activity, time, idx])

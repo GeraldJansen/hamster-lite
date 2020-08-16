@@ -13,6 +13,7 @@ from hamster_lite.lib.stuff import (
     format_duration,
     escape_pango,
     hamster_now,
+    word_wrap,
 )
 
 
