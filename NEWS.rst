@@ -1,4 +1,9 @@
 =============
+Version 0.1.3
+=============
+* Fixed bug in date adustment from edit window.
+
+=============
 Version 0.1.2
 =============
 
