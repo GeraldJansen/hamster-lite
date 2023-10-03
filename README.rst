@@ -83,7 +83,7 @@ Uninstall
 .. code:: bash
 
    ./waf configure
-   sudo ./waf uninstall
+   sudo ./waf uninstall clean
 
 Contributing
 ------------
