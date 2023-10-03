@@ -19,8 +19,6 @@ def setup_i18n():
             module.bindtextdomain('hamster-lite', locale_dir)
             module.textdomain('hamster-lite')
 
-            module.bind_textdomain_codeset('hamster-lite','utf8')
-
         gettext.install("hamster-lite", locale_dir)
 
     else:

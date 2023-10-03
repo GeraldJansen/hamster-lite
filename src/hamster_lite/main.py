@@ -33,8 +33,9 @@ from gi.repository import GLib as glib
 
 from hamster_lite import reports
 from hamster_lite import logger as hamster_logger
-from hamster_lite.lib import default_logger, Fact, stuff, i18n, DATE_FMT
+from hamster_lite.lib import default_logger, i18n
 from hamster_lite.overview import Overview
+from hamster_lite.fact_editor import FactEditor
 from hamster_lite import storage
 
 i18n.setup_i18n()
@@ -55,7 +56,7 @@ class SignalHandler(GObject.GObject):
 class HamsterLite(Gtk.Application):
     """Main application class."""
 
-    def __init__(self):
+    def __init__(self, name="overview"):
         """Setup instance and make sure default signals are connected to methods."""
         super().__init__(application_id='org.hamster-lite')
 
@@ -64,6 +65,7 @@ class HamsterLite(Gtk.Application):
         self.connect('startup', self._startup)
         self.connect('activate', self._activate)
         self.connect('shutdown', self._shutdown)
+        self.name = name
         self.window = None
 
     def _startup(self, app):
@@ -75,7 +77,15 @@ class HamsterLite(Gtk.Application):
     def _activate(self, app):
         """Triggered in regular use after startup."""
         if not self.window:
-            self.window = Overview(app)
+            if self.name == "edit":
+                print('edit: argv', sys.argv)
+                if sys.argv[-1] == 'edit':
+                    self.window = FactEditor(app)
+                else:
+                    self.window = FactEditor(app, fact_id=int(sys.argv[-1]))
+            else:
+                self.window = Overview(app)
+
         app.add_window(self.window)
         self.window.show_all()
         self.window.present()

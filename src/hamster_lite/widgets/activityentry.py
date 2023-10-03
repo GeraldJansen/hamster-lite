@@ -202,9 +202,6 @@ class CmdLineEntry(gtk.Entry):
     def __init__(self, updating=True, **kwargs):
         gtk.Entry.__init__(self)
 
-        # to be set by the caller, if editing an existing fact
-        self.original_fact = None
-
         self.popup = gtk.Window(type = gtk.WindowType.POPUP)
         box = gtk.Frame()
         box.set_shadow_type(gtk.ShadowType.IN)
@@ -383,63 +380,10 @@ class CmdLineEntry(gtk.Entry):
         matches = sorted(matches, key=lambda x: x[1], reverse=True)[:7]
 
         for match, score in matches:
-            label = (fact.start_time or now).strftime("%H:%M")
-            if fact.end_time:
-                label += fact.end_time.strftime("-%H:%M")
-
-            markup_label = label + " " + (stuff.escape_pango(match).replace(search, "<b>%s</b>" % search) if search else match)
-            label += " " + match
+            markup_label = stuff.escape_pango(match).replace(search, "<b>%s</b>" % search) if search else match
+            label = match or ""
 
             res.append(DataRow(markup_label, match, label))
-
-        # list of tuples (description, variant)
-        variants = []
-
-        if self.original_fact:
-            # editing an existing fact
-
-            variant_fact = None
-            if self.original_fact.end_time is None:
-                description = "stop now"
-                variant_fact = self.original_fact.copy()
-                variant_fact.end_time = now
-            elif self.original_fact == self.todays_facts[-1]:
-                # that one is too dangerous, except for the last entry
-                description = "keep up"
-                # Do not use Fact(..., end_time=None): it would be a no-op
-                variant_fact = self.original_fact.copy()
-                variant_fact.end_time = None
-
-            if variant_fact:
-                variant_fact.description = None
-                variant = variant_fact.serialized(prepend_date=False)
-                variants.append((description, variant))
-
-        else:
-            # brand new fact
-            description = "start now"
-            variant = now.strftime("%H:%M ")
-            variants.append((description, variant))
-
-            prev_fact = self.todays_facts[-1] if self.todays_facts else None
-            if prev_fact and prev_fact.end_time:
-                since = stuff.format_duration(now - prev_fact.end_time)
-                description = "from previous activity, %s ago" % since
-                variant = prev_fact.end_time.strftime("%H:%M ")
-                variants.append((description, variant))
-
-            description = "start activity -n minutes ago (1 or 3 digits allowed)"
-            variant = "-"
-            variants.append((description, variant))
-
-        text = text.strip()
-        if text:
-            description = "clear"
-            variant = ""
-            variants.append((description, variant))
-
-        for (description, variant) in variants:
-            res.append(DataRow(variant, description=description))
 
         self.complete_tree.set_rows(res)
 
