@@ -155,8 +155,9 @@ class Fact(object):
         """
         return datetime_to_hamsterday(self.start_time)
 
-    @date.setter
-    def date(self, value):
+    # @date.setter
+    # def date(self, value):
+    def set_date(self, value):
         if self.start_time:
             previous_start_time = self.start_time
             self.start_time = hamsterday_time_to_datetime(value, self.start_time.time())
@@ -184,7 +185,7 @@ class Fact(object):
     @classmethod
     def parse(cls, string, date=None):
         fact = Fact()
-        fact.date = date
+        fact.set_date(date)
         phase = "start_time" if date else "date"
         for key, val in parse_fact(string, phase, {}, date).items():
             setattr(fact, key, val)

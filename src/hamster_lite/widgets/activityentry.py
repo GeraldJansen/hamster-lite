@@ -202,9 +202,6 @@ class CmdLineEntry(gtk.Entry):
     def __init__(self, updating=True, **kwargs):
         gtk.Entry.__init__(self)
 
-        # to be set by the caller, if editing an existing fact
-        self.original_fact = None
-
         self.popup = gtk.Window(type = gtk.WindowType.POPUP)
         box = gtk.Frame()
         box.set_shadow_type(gtk.ShadowType.IN)

@@ -91,6 +91,10 @@ class HamsterClient(object):
         app = HamsterLite()
         app.run()
 
+    def edit(self, *args):
+        app = HamsterLite('edit')
+        app.run()
+
     def add(self, *args):
         from gi.repository import Gtk as gtk
         dialogs.edit.show()
@@ -148,12 +152,10 @@ class HamsterClient(object):
         for category in self.storage.get_categories():
             print(category['name'])
 
-
     def list(self, *dates):
         """list facts within a date range"""
         start_date, end_date = parse_dates(dates or [])
         self._list(start_date, end_date)
-
 
     def current(self, *args):
         """prints current activity. kinda minimal right now"""
@@ -218,7 +220,7 @@ class HamsterClient(object):
                     print("    {}".format(line))
 
             if pretty_fact['tags']:
-                for line in word_wrap(pretty_fact['tags'], 76):
+                for line in stuff.word_wrap(pretty_fact['tags'], 76):
                     print("    {}".format(line))
 
         print("-" * min(row_width, 80))

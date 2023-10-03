@@ -731,7 +731,7 @@ class Storage(gobject.GObject):
                 # ignoring old on-going facts
                 continue
 
-            fact.date = fact_date
+            fact.set_date(fact_date)
             res.append(fact)
 
         return res
