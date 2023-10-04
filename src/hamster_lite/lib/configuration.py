@@ -24,8 +24,7 @@ logger = logging.getLogger(__name__)   # noqa: E402
 import os
 import json
 import datetime as dt
-from xdg.BaseDirectory import xdg_data_home, xdg_config_home
-
+from gi.repository import GLib as glib
 
 class Singleton(object):
     def __new__(cls, *args, **kwargs):
@@ -45,7 +44,7 @@ class ConfStore(Singleton):
 
     def __init__(self):
         self.config = self.DEFAULTS
-        config_dir = os.path.join(xdg_config_home, 'hamster-lite')
+        config_dir = os.path.join(glib.get_user_config_dir(), 'hamster-lite')
         if not os.path.exists(config_dir):
             os.makedirs(config_dir)
         self.config_file = os.path.join(config_dir, 'hamster-lite.json')

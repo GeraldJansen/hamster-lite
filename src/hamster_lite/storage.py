@@ -60,13 +60,8 @@ class Storage(gobject.GObject):
 
     def __init_db_file(self, database_dir):
         if not database_dir:
-            try:
-                from xdg.BaseDirectory import xdg_data_home
-            except ImportError:
-                logger.warning(
-                    "Could not import xdg - assuming ~/.local/share")
-                xdg_data_home = os.path.join(os.path.expanduser('~'),
-                                             '.local', 'share')
+            from gi.repository import GLib
+            xdg_data_home = GLib.get_user_data_dir()
             database_dir = os.path.join(xdg_data_home, 'hamster-lite')
 
         if not os.path.exists(database_dir):

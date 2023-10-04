@@ -44,14 +44,14 @@ Debian-based (tested in Ubuntu 19.04)
 
 .. code:: bash
 
-   sudo apt install gettext intltool python3-gi-cairo python3-distutils python3-xdg
+   sudo apt install gettext intltool python3-gi-cairo python3-distutils
 
 Other
 ^^^^^
 
 Current (late 2019) dependencies for
 `Hamster <https://github.com/projecthamster/hamster/blob/master/README.md>`__
-should work, keeping in mind that the dbus and gconf or gsettings/dconf dependencies are not 
+should work, keeping in mind that the dbus and gconf or gsettings/dconf dependencies are not
 needed.
 
 Trying the development version

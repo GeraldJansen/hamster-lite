@@ -26,7 +26,7 @@ import json
 import datetime as dt
 from gi.repository import GObject as gobject
 from gi.repository import Gtk as gtk
-from xdg.BaseDirectory import xdg_data_home, xdg_config_home
+from gi.repository import GLib as glib
 import hamster_lite
 import hamster_lite.storage as db
 
@@ -105,7 +105,7 @@ class RuntimeStore(Singleton):
 
         self.data_dir = os.path.realpath(self.data_dir)
         self.home_data_dir = os.path.realpath(
-            os.path.join(xdg_data_home, "hamster-lite"))
+            os.path.join(glib.get_user_data_dir(), "hamster-lite"))
         self.storage = db.Storage()
 
 
